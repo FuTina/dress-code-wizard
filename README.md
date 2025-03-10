@@ -23,19 +23,33 @@
 ## 📦 Installation
 
 ### 1️⃣ **Backend Setup (Go + Fiber)**
+---
+---
 ```sh
 git clone https://github.com/FuTina/dress-code-wizard.git
 cd dress-code-wizard/backend
 go mod tidy
 go run main.go
 ```
-
+---
 ### 2️⃣ **Frontend Setup (Vue.js + Tailwind CSS)**
+---
+---
 ```sh
-cd frontend/dress-code-wizard
-   npm install
-   npm run format
-   npm run dev
+cd frontend
+npm install
+npm run dev
+```
+---
+
+## 🔑 Environment Variables
+
+Before running the project, create a `.env` file in the `/frontend` directory and add your own Supabase & OpenAI API keys:
+
+```ini
+VITE_SUPABASE_URL=your-supabase-url
+VITE_SUPABASE_ANON_KEY=your-anon-key
+VITE_OPENAI_API_KEY=your-openai-api-key
 ```
 
 ## 🔌 API Endpoints
@@ -54,6 +68,7 @@ The backend is built with **Go (Fiber)** and provides the following REST API end
 ### **📌 Example API Request: Create an Event**
 To create an event, send a `POST` request to `/events` with the following JSON body:
 
+---
 ```json
 {
   "name": "Casual Friday",
@@ -62,8 +77,10 @@ To create an event, send a `POST` request to `/events` with the following JSON b
   "use_ai": false
 }
 ```
-
+---
 ### **Response**
+---
+---
 ```json
 
 {
@@ -74,4 +91,4 @@ To create an event, send a `POST` request to `/events` with the following JSON b
   "created_at": "2024-04-20T14:30:00Z"
 }
 ```
-
+---

@@ -8,6 +8,10 @@ const dressCodeImages = {
   anime: '/fallback/anime.jpg',
   hero: '/fallback/hero.jpg',
   pyjama: '/fallback/pyjama.jpg',
+  beach: '/fallback/beach.jpg',
+  black_white: '/fallback/black_white.jpg',
+  futuristic: '/fallback/futuristic.jpg',
+  nineties: '/fallback/90s.jpg',
   default: '/fallback/default.jpg',
 };
 
@@ -33,6 +37,15 @@ export const uploadEventImage = async (file) => {
   return { url: publicUrl };
 };
 
+// 🔹 Dresscode-Name normalisieren & passendes Fallback-Bild wählen
+const getFallbackImage = (dressCode) => {
+  if (!dressCode) return dressCodeImages.default;
+  const normalizedDressCode = dressCode.toLowerCase().trim();
+
+  const match = Object.keys(dressCodeImages).find((key) => normalizedDressCode.includes(key));
+  return match ? dressCodeImages[match] : dressCodeImages.default;
+};
+
 // 🔹 Event erstellen mit Fallback-Bild
 export const createEvent = async (eventData, imageFile) => {
   const user = await getCurrentUser();
@@ -45,14 +58,15 @@ export const createEvent = async (eventData, imageFile) => {
     if (uploadResult.error) return { error: uploadResult.error };
     imageUrl = uploadResult.url;
   } else {
-    // Dresscode normalisieren und passendes Fallback-Bild setzen
-    const normalizedDressCode = eventData.dress_code?.toLowerCase().trim();
-    imageUrl = Object.keys(dressCodeImages).find((key) =>
-      normalizedDressCode.includes(key)
-    )
-      ? dressCodeImages[normalizedDressCode]
-      : dressCodeImages.default;
+    // Fallback-Bild nutzen, falls kein Bild hochgeladen wurde
+    imageUrl = getFallbackImage(eventData.dress_code);
   }
+
+  if (!imageUrl.startsWith('http')) {
+    imageUrl = window.location.origin + imageUrl;
+  }
+
+  console.log('📸 Speichere Event mit Bild:', imageUrl);
 
   const { data, error } = await supabase
     .from('events')
@@ -74,13 +88,7 @@ export const getEvents = async () => {
   // Fallback-Bilder für fehlende `image_url` setzen
   const updatedData = data.map((event) => ({
     ...event,
-    image_url:
-      event.image_url ||
-      Object.keys(dressCodeImages).find((key) =>
-        event.dress_code?.toLowerCase().includes(key)
-      )
-        ? dressCodeImages[event.dress_code?.toLowerCase()]
-        : dressCodeImages.default,
+    image_url: event.image_url || getFallbackImage(event.dress_code),
   }));
 
   return { data: updatedData, error };
@@ -101,6 +109,12 @@ export const updateEvent = async (eventId, updatedData, newImageFile) => {
     if (uploadResult.error) return { error: uploadResult.error };
     imageUrl = uploadResult.url;
   }
+
+  if (!imageUrl.startsWith('http')) {
+    imageUrl = window.location.origin + imageUrl;
+  }
+
+  console.log('🔄 Aktualisiere Event mit Bild:', imageUrl);
 
   const { data, error } = await supabase
     .from('events')

@@ -20,12 +20,9 @@
           <div>
             <strong class="text-lg text-gray-900">{{ event.name }}</strong> <br />
             <span class="text-sm text-gray-600">
-              📅 {{ formatDate(event.date) }} | ⏰ {{ event.startTime || '19:00' }} -
-              {{ event.endTime || '20:00' }} </span
-            ><br />
-            <span v-if="event.description" class="text-sm text-gray-700"
-              >📄 {{ event.description }}</span
-            ><br />
+              📅 {{ formatDate(event.date) }} | ⏰ {{ event.startTime || '19:00' }} - {{ event.endTime || '20:00' }}
+            </span><br />
+            <span v-if="event.description" class="text-sm text-gray-700">📄 {{ event.description }}</span><br />
             <span class="text-gray-500 italic">👗 {{ event.dress_code || 'Casual' }}</span>
           </div>
         </div>
@@ -58,9 +55,9 @@
 </template>
 
 <script>
-import { getEvents, deleteEvent } from '@/api/eventService'
-import { downloadICS } from '@/utils/ical'
-import { deleteImage } from '@/api/storageService'
+import { getEvents, deleteEvent } from '@/api/eventService';
+import { downloadICS } from '@/utils/ical';
+import { deleteImage } from '@/api/storageService';
 
 export default {
   data() {
@@ -72,71 +69,80 @@ export default {
         anime: '/fallback/anime.jpg',
         hero: '/fallback/hero.jpg',
         pyjama: '/fallback/pyjama.jpg',
+        beach: '/fallback/beach.jpg',
+        black_white: '/fallback/black_white.jpg',
+        futuristic: '/fallback/futuristic.jpg',
+        nineties: '/fallback/90s.jpg',
         default: '/fallback/default.jpg',
       },
-    }
+    };
   },
   computed: {
     // 📌 Events nach Datum & Startzeit sortieren
     sortedEvents() {
       return [...this.events].sort((a, b) => {
-        const dateTimeA = new Date(`${a.date}T${a.startTime}`)
-        const dateTimeB = new Date(`${b.date}T${b.startTime}`)
-        return dateTimeA - dateTimeB
-      })
+        const dateTimeA = new Date(`${a.date}T${a.startTime}`);
+        const dateTimeB = new Date(`${b.date}T${b.startTime}`);
+        return dateTimeA - dateTimeB;
+      });
     },
   },
   async mounted() {
-    await this.loadEvents()
+    await this.loadEvents();
   },
   methods: {
     async loadEvents() {
-      const { data, error } = await getEvents()
+      const { data, error } = await getEvents();
       if (error) {
-        console.error('❌ Error loading events:', error.message)
+        console.error('❌ Error loading events:', error.message);
       } else {
-        console.log('📊 Events geladen:', data)
-        this.events = Array.isArray(data) ? data : []
+        console.log('📊 Events geladen:', data);
+        this.events = Array.isArray(data) ? data : [];
       }
     },
     async deleteEvent(id, imageUrl) {
-      if (!confirm('Are you sure you want to delete this event?')) return
+      if (!confirm('Are you sure you want to delete this event?')) return;
 
       if (imageUrl) {
-        const imagePath = imageUrl.split('/').pop()
-        await deleteImage('event-images', imagePath)
+        const imagePath = imageUrl.split('/').pop();
+        await deleteImage('event-images', imagePath);
       }
 
-      const { error } = await deleteEvent(id)
+      const { error } = await deleteEvent(id);
       if (!error) {
-        this.events = this.events.filter((event) => event.id !== id)
+        this.events = this.events.filter((event) => event.id !== id);
       } else {
-        alert('❌ Error deleting event: ' + error.message)
+        alert('❌ Error deleting event: ' + error.message);
       }
     },
     getFallbackImage(dressCode) {
-      if (!dressCode) return this.fallbackImages.default
-      const normalizedDressCode = dressCode.toLowerCase().trim()
+      if (!dressCode) return this.fallbackImages.default;
+      const normalizedDressCode = dressCode.toLowerCase().trim();
 
-      // Überprüfe, ob ein passendes Fallback-Image existiert
-      for (const key in this.fallbackImages) {
-        if (normalizedDressCode.includes(key)) {
-          return this.fallbackImages[key]
-        }
-      }
+      const fallbackMapping = {
+        elegant: this.fallbackImages.elegant,
+        neverland: this.fallbackImages.neverland,
+        anime: this.fallbackImages.anime,
+        hero: this.fallbackImages.hero,
+        pyjama: this.fallbackImages.pyjama,
+        beach: this.fallbackImages.beach,
+        black_white: this.fallbackImages.black_white,
+        futuristic: this.fallbackImages.futuristic,
+        nineties: this.fallbackImages.nineties,
+      };
 
-      return this.fallbackImages.default
+      return Object.entries(fallbackMapping).find(([key]) => normalizedDressCode.includes(key))?.[1] || this.fallbackImages.default;
     },
     formatDate(dateString) {
       return new Date(dateString).toLocaleDateString('de-DE', {
         weekday: 'long',
         day: '2-digit',
         month: 'long',
-      })
+      });
     },
     downloadICS(event) {
-      downloadICS(event)
+      downloadICS(event);
     },
   },
-}
+};
 </script>

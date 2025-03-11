@@ -61,8 +61,13 @@ export default {
         anime: '/fallback/anime.jpg',
         hero: '/fallback/hero.jpg',
         pyjama: '/fallback/pyjama.jpg',
+        beach: '/fallback/beach.jpg', // 🌴 Neu hinzugefügt
+        black_white: '/fallback/black_white.jpg', // ⚫⚪ Neu hinzugefügt
+        futuristic: '/fallback/futuristic.jpg', // 🔮 Neu hinzugefügt
+        nineties: '/fallback/90s.jpg', // 🎶 Neu hinzugefügt
         default: '/fallback/default.jpg',
-      },
+      }
+      ,
     };
   },
   methods: {
@@ -107,17 +112,23 @@ export default {
         "anime": this.fallbackImages.anime,
         "hero": this.fallbackImages.hero,
         "pyjama": this.fallbackImages.pyjama,
+        "beach": this.fallbackImages.beach,  // 🌴 Beach Party
+        "black": this.fallbackImages.black_white,  // ⚫⚪ Black & White
+        "white": this.fallbackImages.black_white,  // ⚫⚪ Black & White
+        "futuristic": this.fallbackImages.futuristic, // 🔮 Futuristic Neon
+        "90s": this.fallbackImages.nineties, // 🎶 90s Throwback
       };
 
       return Object.entries(fallbackMapping).find(([key]) => normalizedDressCode.includes(key))?.[1] || this.fallbackImages.default;
-    },
+    }
+    ,
     async createEvent() {
       if (!this.event.name || !this.event.date || !this.event.startTime || !this.event.endTime || !this.event.dress_code) {
         alert('❌ Please fill out all fields before saving!');
         return;
       }
 
-      let imageUrl = this.previewImage; 
+      let imageUrl = this.previewImage;
 
       if (this.imageFile) {
         try {
@@ -139,7 +150,7 @@ export default {
       try {
         const { error } = await createEvent({
           ...this.event,
-          startTime: `${this.event.startTime}:00`, 
+          startTime: `${this.event.startTime}:00`,
           endTime: `${this.event.endTime}:00`,
           image_url: imageUrl,
         });

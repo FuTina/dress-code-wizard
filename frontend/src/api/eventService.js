@@ -9,7 +9,7 @@ const dressCodeImages = {
   hero: '/fallback/hero.jpg',
   pyjama: '/fallback/pyjama.jpg',
   beach: '/fallback/beach.jpg',
-  blackwhite: '/fallback/blackwhite.jpg',
+  black: '/fallback/black.jpg',
   futuristic: '/fallback/futuristic.jpg',
   nineties: '/fallback/nineties.jpg',
   default: '/fallback/default.jpg',

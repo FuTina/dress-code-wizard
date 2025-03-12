@@ -1,6 +1,6 @@
-import axios from 'axios';
+import axios from 'axios'
 
-const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY;
+const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY
 
 const openAiModels = [
   'gpt-4o',
@@ -8,7 +8,7 @@ const openAiModels = [
   'gpt-3.5-turbo-instruct',
   'babbage-002',
   'davinci-002',
-];
+]
 
 const fallbackDressCodes = [
   'Animal Pyjama Party 🦄',
@@ -21,16 +21,16 @@ const fallbackDressCodes = [
   'Futuristic Neon 🔮',
   'Beach Party 🌴',
   'Elegant Dinner 🥂',
-];
+]
 
 const getFallbackDressCode = () => {
-  return fallbackDressCodes[Math.floor(Math.random() * fallbackDressCodes.length)];
-};
+  return fallbackDressCodes[Math.floor(Math.random() * fallbackDressCodes.length)]
+}
 
 export const getDressCodeSuggestion = async () => {
   for (const model of openAiModels) {
     try {
-      console.log(`🔹 OpenAI wird mit Modell \`${model}\` aufgerufen...`);
+      console.log(`🔹 OpenAI wird mit Modell \`${model}\` aufgerufen...`)
 
       const response = await axios.post(
         'https://api.openai.com/v1/chat/completions',
@@ -51,37 +51,37 @@ export const getDressCodeSuggestion = async () => {
             Authorization: `Bearer ${OPENAI_API_KEY}`,
             'Content-Type': 'application/json',
           },
-        }
-      );
+        },
+      )
 
-      console.log('🔹 OpenAI Antwort erhalten:', response.data);
-      const suggestion = response.data?.choices?.[0]?.message?.content?.trim();
+      console.log('🔹 OpenAI Antwort erhalten:', response.data)
+      const suggestion = response.data?.choices?.[0]?.message?.content?.trim()
 
-      if (suggestion) return suggestion;
+      if (suggestion) return suggestion
     } catch (error) {
-      console.error(`❌ OpenAI Fehler mit Modell ${model}:`, error.response?.data || error.message);
+      console.error(`❌ OpenAI Fehler mit Modell ${model}:`, error.response?.data || error.message)
 
       if (error.response?.data?.error?.code === 'insufficient_quota') {
-        console.warn(`⚠️ Kein Guthaben für ${model}, versuche nächstes Modell...`);
-        continue;
+        console.warn(`⚠️ Kein Guthaben für ${model}, versuche nächstes Modell...`)
+        continue
       }
 
       if (error.response?.status === 429) {
-        console.warn(`⚠️ Rate Limit für ${model} erreicht, versuche nächstes Modell...`);
-        continue;
+        console.warn(`⚠️ Rate Limit für ${model} erreicht, versuche nächstes Modell...`)
+        continue
       }
 
-      break;
+      break
     }
   }
 
-  console.warn('⚠️ Alle OpenAI-Modelle fehlgeschlagen. Nutze Fallback-Dresscode.');
-  return getFallbackDressCode();
-};
+  console.warn('⚠️ Alle OpenAI-Modelle fehlgeschlagen. Nutze Fallback-Dresscode.')
+  return getFallbackDressCode()
+}
 
 export const generateEventImage = async (dressCode) => {
   try {
-    console.log(`🎨 Generiere Event-Bild für Dresscode: ${dressCode}`);
+    console.log(`🎨 Generiere Event-Bild für Dresscode: ${dressCode}`)
 
     const response = await axios.post(
       'https://api.openai.com/v1/images/generations',
@@ -96,12 +96,12 @@ export const generateEventImage = async (dressCode) => {
           Authorization: `Bearer ${OPENAI_API_KEY}`,
           'Content-Type': 'application/json',
         },
-      }
-    );
+      },
+    )
 
-    return { imageUrl: response.data?.data?.[0]?.url, error: null };
+    return { imageUrl: response.data?.data?.[0]?.url, error: null }
   } catch (error) {
-    console.error('❌ Fehler bei der AI-Bildgenerierung:', error);
-    return { imageUrl: null, error: error.message };
+    console.error('❌ Fehler bei der AI-Bildgenerierung:', error)
+    return { imageUrl: null, error: error.message }
   }
-};
+}

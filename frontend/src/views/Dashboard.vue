@@ -69,9 +69,9 @@ export default {
         hero: '/fallback/hero.jpg',
         pyjama: '/fallback/pyjama.jpg',
         beach: '/fallback/beach.jpg',
-        black_white: '/fallback/black_white.jpg',
+        blackwhite: '/fallback/blackwhite.jpg',
         futuristic: '/fallback/futuristic.jpg',
-        nineties: '/fallback/90s.jpg',
+        nineties: '/fallback/nineties.jpg',
         default: '/fallback/default.jpg',
       },
     };

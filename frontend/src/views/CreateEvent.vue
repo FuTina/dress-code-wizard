@@ -77,9 +77,9 @@ export default {
         hero: '/fallback/hero.jpg',
         pyjama: '/fallback/pyjama.jpg',
         beach: '/fallback/beach.jpg', // 🌴 Neu hinzugefügt
-        black_white: '/fallback/black_white.jpg', // ⚫⚪ Neu hinzugefügt
+        blackwhite: '/fallback/blackwhite.jpg', // ⚫⚪ Neu hinzugefügt
         futuristic: '/fallback/futuristic.jpg', // 🔮 Neu hinzugefügt
-        nineties: '/fallback/90s.jpg', // 🎶 Neu hinzugefügt
+        nineties: '/fallback/nineties.jpg', // 🎶 Neu hinzugefügt
         default: '/fallback/default.jpg',
       },
     }
@@ -127,10 +127,11 @@ export default {
         hero: this.fallbackImages.hero,
         pyjama: this.fallbackImages.pyjama,
         beach: this.fallbackImages.beach, // 🌴 Beach Party
-        black: this.fallbackImages.black_white, // ⚫⚪ Black & White
-        white: this.fallbackImages.black_white, // ⚫⚪ Black & White
+        blackwhite: this.fallbackImages.blackwhite, // ⚫⚪ Black & White
+        white: this.fallbackImages.blackwhite, // ⚫⚪ Black & White
+        black: this.fallbackImages.blackwhite, // ⚫⚪ Black & White
         futuristic: this.fallbackImages.futuristic, // 🔮 Futuristic Neon
-        '90s': this.fallbackImages.nineties, // 🎶 90s Throwback
+        nineties: this.fallbackImages.nineties, // 🎶 90s Throwback
       }
 
       return (

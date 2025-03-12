@@ -99,7 +99,7 @@ export default {
           console.warn('⚠️ AI Image generation failed. Using fallback image.');
           this.setFallbackImage();
         } else {
-          this.previewImage = imageUrl;
+          this.previewImage = imageUrl; // 🔹 Hier wird das Bild gesetzt!
           console.log('✅ Image successfully loaded:', imageUrl);
         }
       } catch (error) {

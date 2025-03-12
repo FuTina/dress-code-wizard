@@ -1,10 +1,10 @@
-import axios from 'axios'
-import { supabase } from '@/lib/supabase'
+import axios from 'axios';
+import { supabase } from '@/lib/supabase';
 
-const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY
-const SUPABASE_BUCKET = 'event-images'
+const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY;
+const SUPABASE_BUCKET = 'event-images';
 
-const openAiModels = ['gpt-3.5-turbo', 'gpt-3.5-turbo-instruct', 'babbage-002', 'davinci-002']
+const openAiModels = ['gpt-3.5-turbo', 'gpt-3.5-turbo-instruct', 'babbage-002', 'davinci-002'];
 
 const fallbackDressCodes = [
   'Animal Pyjama Party 🦄',
@@ -17,14 +17,14 @@ const fallbackDressCodes = [
   'Futuristic Neon 🔮',
   'Beach Party 🌴',
   'Elegant Dinner 🥂',
-]
+];
 
 /**
  * Returns a random fallback dress code if OpenAI API is unavailable.
  */
 const getFallbackDressCode = () => {
-  return fallbackDressCodes[Math.floor(Math.random() * fallbackDressCodes.length)]
-}
+  return fallbackDressCodes[Math.floor(Math.random() * fallbackDressCodes.length)];
+};
 
 /**
  * Fetches an AI-generated dress code suggestion using OpenAI.
@@ -33,7 +33,7 @@ const getFallbackDressCode = () => {
 export const getDressCodeSuggestion = async () => {
   for (const model of openAiModels) {
     try {
-      console.log(`🔹 Requesting OpenAI with model: ${model}...`)
+      console.log(`🔹 Requesting OpenAI with model: ${model}...`);
 
       const response = await axios.post(
         'https://api.openai.com/v1/chat/completions',
@@ -54,37 +54,36 @@ export const getDressCodeSuggestion = async () => {
             Authorization: `Bearer ${OPENAI_API_KEY}`,
             'Content-Type': 'application/json',
           },
-        },
-      )
+        }
+      );
 
-      console.log('🔹 OpenAI response received:', response.data)
-      let suggestion = response.data?.choices?.[0]?.message?.content?.trim()
+      console.log('🔹 OpenAI response received:', response.data);
+      let suggestion = response.data?.choices?.[0]?.message?.content?.trim();
 
       if (suggestion) {
-        // 🔹 Remove unnecessary quotes
-        suggestion = suggestion.replace(/["']/g, '')
-        return suggestion
+        suggestion = suggestion.replace(/["']/g, '');
+        return suggestion;
       }
     } catch (error) {
-      console.error(`❌ OpenAI error with model ${model}:`, error.response?.data || error.message)
+      console.error(`❌ OpenAI error with model ${model}:`, error.response?.data || error.message);
 
       if (error.response?.data?.error?.code === 'insufficient_quota') {
-        console.warn(`⚠️ No remaining quota for ${model}, trying next model...`)
-        continue
+        console.warn(`⚠️ No remaining quota for ${model}, trying next model...`);
+        continue;
       }
 
       if (error.response?.status === 429) {
-        console.warn(`⚠️ Rate limit reached for ${model}, trying next model...`)
-        continue
+        console.warn(`⚠️ Rate limit reached for ${model}, trying next model...`);
+        continue;
       }
 
-      break // Stop trying models if it's a non-retryable error
+      break;
     }
   }
 
-  console.warn('⚠️ All OpenAI models failed. Using a fallback dress code.')
-  return getFallbackDressCode()
-}
+  console.warn('⚠️ All OpenAI models failed. Using a fallback dress code.');
+  return getFallbackDressCode();
+};
 
 /**
  * Generates an AI-powered event invitation image based on the given dress code.
@@ -130,7 +129,7 @@ export const generateEventImage = async (dressCode, setLoading) => {
 
     console.log(`✅ AI image generated successfully: ${imageUrl}`);
 
-    // **Fix: Bild direkt in Supabase speichern**
+    // **Save image to Supabase**
     const savedImageUrl = await saveImageToSupabase(imageUrl, cleanDressCode);
 
     return { imageUrl: savedImageUrl, error: null };
@@ -148,7 +147,6 @@ export const generateEventImage = async (dressCode, setLoading) => {
   }
 };
 
-
 /**
  * Saves an AI-generated image to Supabase Storage and returns its public URL.
  *
@@ -158,39 +156,37 @@ export const generateEventImage = async (dressCode, setLoading) => {
  */
 const saveImageToSupabase = async (imageUrl, dressCode) => {
   try {
-    console.log(`💾 Fetching image from OpenAI URL: ${imageUrl}`)
+    console.log(`💾 Fetching image from OpenAI: ${imageUrl}`);
 
-    // 🔹 OpenAI-Bild als Blob herunterladen
-    const response = await fetch(imageUrl)
-    if (!response.ok) throw new Error(`Failed to fetch AI-generated image: ${response.statusText}`)
+    // 🔹 OpenAI-Bild abrufen als Blob
+    const response = await fetch(imageUrl);
+    if (!response.ok) throw new Error(`Failed to fetch AI-generated image: ${response.statusText}`);
 
-    const blob = await response.blob()
-    const fileExt = 'png'
+    const blob = await response.blob();
+    const fileExt = 'png';
 
-    // 🔹 Sicherer Dateiname für Supabase-Storage
-    const timestamp = Date.now()
-    const safeDressCode = dressCode.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_-]/g, '')
-    const fileName = `event-images/${timestamp}-${safeDressCode}.${fileExt}`
+    // 🔹 Datei erstellen (Fix für Supabase)
+    const file = new File([blob], `${dressCode}.${fileExt}`, { type: 'image/png' });
 
-    console.log(`🖼 Uploading image to Supabase Storage: ${fileName}`)
+    // 🔹 Sicherer Dateiname für Storage
+    const timestamp = Date.now();
+    const safeDressCode = dressCode.replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 15);
+    const fileName = `event-images/${timestamp}-${safeDressCode}.${fileExt}`;
 
-    // 🔹 Hochladen in Supabase Storage
-    const { data, error } = await supabase.storage.from(SUPABASE_BUCKET).upload(fileName, blob, {
-      cacheControl: '3600',
-      contentType: 'image/png',
-      upsert: false,
-    })
+    console.log(`🖼 Uploading image to Supabase Storage: ${fileName}`);
 
-    if (error) throw new Error(`Supabase upload failed: ${error.message}`)
+    // 🔹 Supabase Storage Upload nutzen
+    const { data, error } = await supabase.storage.from(SUPABASE_BUCKET).upload(fileName, file);
+
+    if (error) throw new Error(`Supabase upload failed: ${error.message}`);
 
     // 🔹 Öffentliche URL abrufen
-    const { publicUrl } = supabase.storage.from(SUPABASE_BUCKET).getPublicUrl(fileName)
-    if (!publicUrl) throw new Error('Failed to retrieve public URL')
+    const publicUrl = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/${SUPABASE_BUCKET}/${fileName}`;
 
-    console.log(`✅ Image successfully saved to Supabase: ${publicUrl}`)
-    return publicUrl
+    console.log(`✅ Image successfully saved to Supabase: ${publicUrl}`);
+    return publicUrl;
   } catch (error) {
-    console.error('❌ Failed to store image in Supabase:', error.message)
-    return '/fallback/default-event.jpg' // Falls Hochladen fehlschlägt, Fallback-Bild setzen
+    console.error('❌ Failed to store image in Supabase:', error.message);
+    return '/fallback/default-event.jpg'; // Falls Hochladen fehlschlägt, Fallback-Bild setzen
   }
-}
+};

@@ -16,20 +16,14 @@
     <label>Dress Code:</label>
     <div class="flex gap-2">
       <input v-model="event.dress_code" class="w-full p-3 border rounded mt-2" placeholder="Dress Code" />
-      <button
-        @click="generateDressCode"
-        class="bg-blue-500 text-white px-3 py-2 rounded hover:bg-blue-700 transition"
-      >
+      <button @click="generateDressCode" class="bg-blue-500 text-white px-3 py-2 rounded hover:bg-blue-700 transition">
         🪄 AI Suggestion
       </button>
     </div>
 
     <!-- AI Image Generator -->
-    <button
-      @click="generateEventImage"
-      class="mt-2 bg-indigo-500 text-white px-4 py-2 rounded hover:bg-indigo-700 transition"
-      :disabled="isGenerating"
-    >
+    <button @click="generateEventImage"
+      class="mt-2 bg-indigo-500 text-white px-4 py-2 rounded hover:bg-indigo-700 transition" :disabled="isGenerating">
       🎨 Generate AI Image
     </button>
 
@@ -51,10 +45,8 @@
       <img :src="previewImage" alt="Event Image" class="w-full h-40 object-cover rounded shadow-md" />
     </div>
 
-    <button
-      @click="createEvent"
-      class="mt-4 bg-purple-600 text-white px-4 py-2 w-full rounded hover:bg-purple-800 transition"
-    >
+    <button @click="createEvent"
+      class="mt-4 bg-purple-600 text-white px-4 py-2 w-full rounded hover:bg-purple-800 transition">
       ✅ Save Event
     </button>
   </div>
@@ -108,12 +100,14 @@ export default {
           this.setFallbackImage();
         } else {
           this.previewImage = imageUrl;
+          console.log('✅ Image successfully loaded:', imageUrl);
         }
       } catch (error) {
         console.error('❌ AI Image Generation Error:', error);
         this.setFallbackImage();
       }
     },
+
     handleFileUpload(event) {
       this.imageFile = event.target.files[0];
       this.previewImage = URL.createObjectURL(this.imageFile);
@@ -206,6 +200,7 @@ export default {
   height: 50px;
   animation: spin 1s linear infinite;
 }
+
 @keyframes spin {
   to {
     transform: rotate(360deg);

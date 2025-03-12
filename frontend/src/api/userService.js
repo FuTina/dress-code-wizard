@@ -28,7 +28,6 @@ export async function uploadProfileImage(file) {
   return { url: publicUrl, error: null }
 }
 
-
 /**
  * 🔹 Delete profile image from Supabase Storage
  * @param {string} imageUrl - The full image URL

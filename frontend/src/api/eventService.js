@@ -26,14 +26,26 @@ export const uploadEventImage = async (file) => {
   if (!file) return { error: 'No file selected' }
 
   const fileName = `${Date.now()}-${file.name}`
+  console.log('📤 Hochladen zu Supabase:', fileName)
+
   const { data, error } = await supabase.storage
     .from('event-images')
     .upload(fileName, file, { cacheControl: '3600', upsert: false })
 
-  if (error) return { error }
+  if (error) {
+    console.error('❌ Fehler beim Hochladen in Supabase:', error.message)
+    return { error }
+  }
 
   // Hole öffentliche URL
   const { publicUrl } = supabase.storage.from('event-images').getPublicUrl(fileName)
+
+  if (!publicUrl) {
+    console.warn('⚠️ Konnte keine öffentliche URL abrufen – Fallback wird verwendet')
+    return { url: '/fallback/default.jpg' }
+  }
+
+  console.log('✅ Bild erfolgreich hochgeladen:', publicUrl)
   return { url: publicUrl }
 }
 
@@ -55,7 +67,10 @@ export const createEvent = async (eventData, imageFile) => {
 
   if (imageFile) {
     const uploadResult = await uploadEventImage(imageFile)
-    if (uploadResult.error) return { error: uploadResult.error }
+    if (uploadResult.error) {
+      console.error('❌ Bild-Upload fehlgeschlagen:', uploadResult.error)
+      return { error: uploadResult.error }
+    }
     imageUrl = uploadResult.url
   } else {
     // Fallback-Bild nutzen, falls kein Bild hochgeladen wurde
@@ -71,7 +86,14 @@ export const createEvent = async (eventData, imageFile) => {
   const { data, error } = await supabase
     .from('events')
     .insert([{ ...eventData, user_id: user.id, image_url: imageUrl }])
+    .select()
 
+  if (error) {
+    console.error('❌ Fehler beim Speichern des Events:', error.message)
+    return { error }
+  }
+
+  console.log('✅ Event erfolgreich gespeichert:', data)
   return { data, error }
 }
 
@@ -91,7 +113,10 @@ export const getEvents = async () => {
     .order('date', { ascending: true })
     .order('startTime', { ascending: true })
 
-  if (!data) return { data: [], error }
+  if (error) {
+    console.error('❌ Fehler beim Abrufen der Events:', error.message)
+    return { data: [], error }
+  }
 
   // 🔹 Fallback-Bilder setzen
   const updatedData = data.map((event) => ({
@@ -105,6 +130,9 @@ export const getEvents = async () => {
 // 🔹 Event abrufen
 export const getEventById = async (eventId) => {
   const { data, error } = await supabase.from('events').select('*').eq('id', eventId).single()
+  if (error) {
+    console.error('❌ Fehler beim Abrufen des Events:', error.message)
+  }
   return { data, error }
 }
 
@@ -114,7 +142,10 @@ export const updateEvent = async (eventId, updatedData, newImageFile) => {
 
   if (newImageFile) {
     const uploadResult = await uploadEventImage(newImageFile)
-    if (uploadResult.error) return { error: uploadResult.error }
+    if (uploadResult.error) {
+      console.error('❌ Fehler beim Hochladen des neuen Bildes:', uploadResult.error)
+      return { error: uploadResult.error }
+    }
     imageUrl = uploadResult.url
   }
 
@@ -128,6 +159,11 @@ export const updateEvent = async (eventId, updatedData, newImageFile) => {
     .from('events')
     .update({ ...updatedData, image_url: imageUrl })
     .eq('id', eventId)
+    .select()
+
+  if (error) {
+    console.error('❌ Fehler beim Aktualisieren des Events:', error.message)
+  }
 
   return { data, error }
 }
@@ -135,6 +171,9 @@ export const updateEvent = async (eventId, updatedData, newImageFile) => {
 // 🔹 Event löschen
 export const deleteEvent = async (eventId) => {
   const { error } = await supabase.from('events').delete().eq('id', eventId)
+  if (error) {
+    console.error('❌ Fehler beim Löschen des Events:', error.message)
+  }
   return { error }
 }
 

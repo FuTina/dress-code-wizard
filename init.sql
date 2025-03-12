@@ -86,4 +86,10 @@ ON storage.objects
 FOR SELECT
 USING (true);
 
+-- Erlaubt allen authentifizierten Benutzern, Bilder in `event-images` hochzuladen
+CREATE POLICY "Allow image upload for authenticated users"
+ON storage.objects
+FOR INSERT WITH CHECK (bucket_id = 'event-images');
+
+
 

@@ -22,8 +22,8 @@
     </div>
 
     <!-- AI Image Generator -->
-    <button @click="generateEventImage"
-      class="mt-2 bg-indigo-500 text-white px-4 py-2 rounded hover:bg-indigo-700 transition" :disabled="isGenerating">
+    <button @click="generateEventImage" class="mt-2 bg-indigo-500 text-white px-4 py-2 rounded hover:bg-indigo-700 transition"
+      :disabled="isGenerating">
       🎨 Generate AI Image
     </button>
 
@@ -45,8 +45,7 @@
       <img :src="previewImage" alt="Event Image" class="w-full h-40 object-cover rounded shadow-md" />
     </div>
 
-    <button @click="createEvent"
-      class="mt-4 bg-purple-600 text-white px-4 py-2 w-full rounded hover:bg-purple-800 transition">
+    <button @click="createEvent" class="mt-4 bg-purple-600 text-white px-4 py-2 w-full rounded hover:bg-purple-800 transition">
       ✅ Save Event
     </button>
   </div>
@@ -95,11 +94,13 @@ export default {
           this.isGenerating = loading;
         });
 
+        console.log('🖼️ AI-Generiertes Bild:', imageUrl);
+
         if (error || !imageUrl) {
           console.warn('⚠️ AI Image generation failed. Using fallback image.');
           this.setFallbackImage();
         } else {
-          this.previewImage = imageUrl; // 🔹 Hier wird das Bild gesetzt!
+          this.previewImage = imageUrl;
           console.log('✅ Image successfully loaded:', imageUrl);
         }
       } catch (error) {
@@ -159,10 +160,10 @@ export default {
         imageUrl = window.location.origin + imageUrl;
       }
 
-      console.log('📸 Final Image URL:', imageUrl);
+      console.log('📸 Final Image URL before saving:', imageUrl);
 
       try {
-        const { error } = await createEvent({
+        const { data, error } = await createEvent({
           ...this.event,
           startTime: `${this.event.startTime}:00`,
           endTime: `${this.event.endTime}:00`,
@@ -173,6 +174,7 @@ export default {
           console.error('❌ Error saving event:', error);
         } else {
           alert('✅ Event saved!');
+          console.log('📅 Event Data:', data);
           this.$router.push('/dashboard');
         }
       } catch (error) {

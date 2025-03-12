@@ -1,50 +1,58 @@
-import { DateTime } from 'luxon';
+import { DateTime } from 'luxon'
 
 export const generateICS = (event) => {
   if (!event.date || !event.startTime || !event.endTime) {
-    console.error('❌ Missing date or time in event:', event);
-    return null;
+    console.error('❌ Missing date or time in event:', event)
+    return null
   }
 
   // 🔹 Konvertiere `event.date` sicher von ISO in `yyyy-MM-dd`
-  const eventDate = DateTime.fromISO(event.date).toFormat("yyyy-MM-dd");
+  const eventDate = DateTime.fromISO(event.date).toFormat('yyyy-MM-dd')
 
   // 🕑 Konvertiere die Zeit nach UTC für Google
   const formatUTC = (date, time) => {
-    const dt = DateTime.fromISO(date).setZone("Europe/Berlin");
+    const dt = DateTime.fromISO(date).setZone('Europe/Berlin')
     if (!dt.isValid) {
-      console.error('❌ Invalid date/time:', date, time);
-      return null;
+      console.error('❌ Invalid date/time:', date, time)
+      return null
     }
-    return dt.plus({ hours: parseInt(time.split(":")[0]), minutes: parseInt(time.split(":")[1]) })
+    return dt
+      .plus({ hours: parseInt(time.split(':')[0]), minutes: parseInt(time.split(':')[1]) })
       .toUTC()
-      .toFormat("yyyyMMdd'T'HHmmss'Z'");
-  };
+      .toFormat("yyyyMMdd'T'HHmmss'Z'")
+  }
 
   // 🕑 Konvertiere die Zeit nach lokaler Berlin-Zeit für iCloud
   const formatBerlinTime = (date, time) => {
-    const dt = DateTime.fromISO(date).setZone("Europe/Berlin");
+    const dt = DateTime.fromISO(date).setZone('Europe/Berlin')
     if (!dt.isValid) {
-      console.error('❌ Invalid Berlin time:', date, time);
-      return null;
+      console.error('❌ Invalid Berlin time:', date, time)
+      return null
     }
-    return dt.plus({ hours: parseInt(time.split(":")[0]), minutes: parseInt(time.split(":")[1]) })
-      .toFormat("yyyyMMdd'T'HHmmss");
-  };
+    return dt
+      .plus({ hours: parseInt(time.split(':')[0]), minutes: parseInt(time.split(':')[1]) })
+      .toFormat("yyyyMMdd'T'HHmmss")
+  }
 
   // 📌 Zeiten für Google (UTC)
-  const formattedStartUTC = formatUTC(event.date, event.startTime);
-  const formattedEndUTC = formatUTC(event.date, event.endTime);
+  const formattedStartUTC = formatUTC(event.date, event.startTime)
+  const formattedEndUTC = formatUTC(event.date, event.endTime)
 
   // 📌 Zeiten für iCloud (lokal Berlin)
-  const formattedStartBerlin = formatBerlinTime(event.date, event.startTime);
-  const formattedEndBerlin = formatBerlinTime(event.date, event.endTime);
+  const formattedStartBerlin = formatBerlinTime(event.date, event.startTime)
+  const formattedEndBerlin = formatBerlinTime(event.date, event.endTime)
 
-  console.log('📌 Debug: ICS Event Zeiten:', { eventDate, formattedStartUTC, formattedEndUTC, formattedStartBerlin, formattedEndBerlin });
+  console.log('📌 Debug: ICS Event Zeiten:', {
+    eventDate,
+    formattedStartUTC,
+    formattedEndUTC,
+    formattedStartBerlin,
+    formattedEndBerlin,
+  })
 
   if (!formattedStartUTC || !formattedEndUTC || !formattedStartBerlin || !formattedEndBerlin) {
-    console.error('❌ Error formatting start or end time:', event);
-    return null;
+    console.error('❌ Error formatting start or end time:', event)
+    return null
   }
 
   // 📝 iCalendar-Datei mit `TZID` für iCloud und UTC für Google
@@ -79,10 +87,10 @@ SUMMARY:${event.name}
 DESCRIPTION:Dress Code: ${event.dress_code}
 LOCATION:${event.location || 'Online'}
 END:VEVENT
-END:VCALENDAR`;
+END:VCALENDAR`
 
-  console.log('📝 Generierte iCalendar-Datei:\n', icsContent);
+  console.log('📝 Generierte iCalendar-Datei:\n', icsContent)
 
-  const blob = new Blob([icsContent], { type: 'text/calendar' });
-  return URL.createObjectURL(blob);
-};
+  const blob = new Blob([icsContent], { type: 'text/calendar' })
+  return URL.createObjectURL(blob)
+}

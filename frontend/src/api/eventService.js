@@ -77,31 +77,30 @@ export const createEvent = async (eventData, imageFile) => {
 
 // 🔹 Events laden & nach Datum + Zeit sortieren
 export const getEvents = async () => {
-  const now = DateTime.now().setZone("Europe/Berlin").startOf("day").toISODate(); // Heutiges Datum
-  console.log("🗑️ Lösche abgelaufene Events vor:", now);
+  const now = DateTime.now().setZone('Europe/Berlin').startOf('day').toISODate() // Heutiges Datum
+  console.log('🗑️ Lösche abgelaufene Events vor:', now)
 
   // 🔹 Automatische Löschung alter Events
-  await supabase.from("events").delete().lt("date", now);
+  await supabase.from('events').delete().lt('date', now)
 
   // 🔹 Events abrufen (nur zukünftige)
   const { data, error } = await supabase
-    .from("events")
-    .select("*")
-    .gte("date", now) // Nur heutige & zukünftige Events abrufen
-    .order("date", { ascending: true })
-    .order("startTime", { ascending: true });
+    .from('events')
+    .select('*')
+    .gte('date', now) // Nur heutige & zukünftige Events abrufen
+    .order('date', { ascending: true })
+    .order('startTime', { ascending: true })
 
-  if (!data) return { data: [], error };
+  if (!data) return { data: [], error }
 
   // 🔹 Fallback-Bilder setzen
   const updatedData = data.map((event) => ({
     ...event,
     image_url: event.image_url || getFallbackImage(event.dress_code),
-  }));
+  }))
 
-  return { data: updatedData, error };
-};
-
+  return { data: updatedData, error }
+}
 
 // 🔹 Event abrufen
 export const getEventById = async (eventId) => {

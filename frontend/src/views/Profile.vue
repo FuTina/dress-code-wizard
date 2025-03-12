@@ -3,9 +3,9 @@
     <h1 class="text-xl font-bold text-purple-700">👤 Your Profile</h1>
 
     <div v-if="user" class="mt-4">
-      <!-- 🖼 Profile Image (Random Animal SVG as Default) -->
+      <!-- 🖼 Profile Image -->
       <img
-        :src="user.image_url || randomAnimalSVG"
+        :src="previewImage || user.user_metadata?.image_url || '/icons/user.svg'"
         alt="Profile"
         class="w-24 h-24 rounded-full mx-auto object-cover border border-gray-300 shadow-md"
       />
@@ -13,9 +13,18 @@
       <!-- 📂 File Input -->
       <input type="file" @change="handleFileUpload" class="mt-2 w-full p-2 border rounded" />
 
+      <!-- 💾 Save Button (nur sichtbar, wenn ein neues Bild hochgeladen wurde) -->
+      <button
+        v-if="imageFile"
+        @click="saveProfileImage"
+        class="mt-2 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
+      >
+        💾 Save Profile Image
+      </button>
+
       <!-- 🗑 Delete Profile Image -->
       <button
-        v-if="user.image_url"
+        v-if="user.user_metadata?.image_url"
         @click="deleteProfileImage"
         class="mt-2 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-700 transition"
       >
@@ -39,46 +48,62 @@
 
 <script>
 import { supabase } from '@/lib/supabase'
-import { uploadProfileImage } from '@/api/userService'
-import { deleteImage } from '@/api/storageService'
+import { uploadProfileImage, deleteProfileImage } from '@/api/userService'
 
 export default {
   data() {
     return {
       user: null,
-      randomAnimalSVG: null,
+      imageFile: null,
+      previewImage: null,
     }
   },
   async mounted() {
-    const { data } = await supabase.auth.getUser()
-    this.user = data.user
-
-    // Falls der Benutzer kein eigenes Bild hat → Zufälliges Tier-Icon setzen
-    if (!this.user?.image_url) {
-      this.randomAnimalSVG = this.getRandomAnimalSVG()
-    }
+    await this.fetchUserData()
   },
   methods: {
-    async handleFileUpload(event) {
-      const file = event.target.files[0]
-      if (!file) return
+    async fetchUserData() {
+      const { data, error } = await supabase.auth.getUser()
+      if (error) {
+        console.error('❌ Error fetching user data:', error.message)
+      } else {
+        this.user = data.user
+        this.previewImage = null
+      }
+    },
 
-      const { url, error } = await uploadProfileImage(file)
+    handleFileUpload(event) {
+      this.imageFile = event.target.files[0]
+      if (!this.imageFile) return
+      this.previewImage = URL.createObjectURL(this.imageFile)
+    },
+
+    async saveProfileImage() {
+      if (!this.imageFile) return
+
+      const { url, error } = await uploadProfileImage(this.imageFile)
       if (error) {
         alert('❌ Error uploading profile image: ' + error.message)
         return
       }
 
-      // 🖼 Update user metadata in Supabase
-      await supabase.auth.updateUser({ data: { image_url: url } })
-      this.user.image_url = url
+      // 🖼 Bild-URL in Supabase speichern
+      const { error: updateError } = await supabase.auth.updateUser({ data: { image_url: url } })
+
+      if (updateError) {
+        alert('❌ Error updating user profile: ' + updateError.message)
+        return
+      }
+
+      // 🔄 Benutzer-Daten erneut abrufen
+      await this.fetchUserData()
     },
 
     async deleteProfileImage() {
-      if (!this.user.image_url) return
+      if (!this.user.user_metadata?.image_url) return
 
-      const imagePath = this.user.image_url.split('/').pop()
-      const { error } = await deleteImage('profile-images', imagePath)
+      const imageUrl = this.user.user_metadata.image_url
+      const { error } = await deleteProfileImage(imageUrl)
 
       if (error) {
         alert('❌ Error deleting image: ' + error.message)
@@ -86,28 +111,16 @@ export default {
       }
 
       alert('✅ Image deleted!')
-      this.user.image_url = null
 
-      // 🔹 Entferne Bild-Referenz in Supabase
+      // 🔹 Entferne Bild-Referenz in Supabase Auth
       await supabase.auth.updateUser({ data: { image_url: null } })
+      await this.fetchUserData()
     },
 
     async logout() {
       await supabase.auth.signOut()
       this.user = null
       this.$router.push('/login')
-    },
-
-    getRandomAnimalSVG() {
-      const animalIcons = [
-        '/icons/cat.svg',
-        '/icons/dog.svg',
-        '/icons/rabbit.svg',
-        '/icons/squirrel.svg',
-        '/icons/rat.svg',
-        '/icons/turtle.svg',
-      ]
-      return animalIcons[Math.floor(Math.random() * animalIcons.length)]
     },
   },
 }

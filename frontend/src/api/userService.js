@@ -8,20 +8,51 @@ import { supabase } from '@/lib/supabase'
 export async function uploadProfileImage(file) {
   if (!file) return { error: 'No file selected' }
 
-  const bucketName = 'profile-images' // 🔹 Bucket name
-  const fileName = `profiles/${Date.now()}-${file.name}`
+  const bucketName = 'profile-images'
+  const filePath = `profiles/${Date.now()}-${file.name}`
 
-  // 🔹 Upload file to Supabase Storage
-  const { data, error } = await supabase.storage
+  // 📤 Datei hochladen
+  const { data, error: uploadError } = await supabase.storage
     .from(bucketName)
-    .upload(fileName, file, { cacheControl: '3600', upsert: false })
+    .upload(filePath, file, { cacheControl: '3600', upsert: false })
+
+  if (uploadError) {
+    console.error('❌ Error uploading profile image:', uploadError.message)
+    return { error: uploadError }
+  }
+
+  // 🔹 Public URL manuell korrekt generieren
+  const publicUrl = `https://jtsrmmuvvmnmwhovfjlt.supabase.co/storage/v1/object/public/${bucketName}/${filePath}`
+
+  console.log('✅ Profile Image Uploaded:', publicUrl)
+  return { url: publicUrl, error: null }
+}
+
+
+/**
+ * 🔹 Delete profile image from Supabase Storage
+ * @param {string} imageUrl - The full image URL
+ * @returns {Object} { error }
+ */
+export async function deleteProfileImage(imageUrl) {
+  if (!imageUrl) return { error: 'No image URL provided' }
+
+  const bucketName = 'profile-images'
+  const filePath = imageUrl.split(`${bucketName}/`)[1] // 🔥 Extrahiert den korrekten Dateipfad
+
+  if (!filePath) {
+    console.error('❌ Invalid file path:', imageUrl)
+    return { error: 'Invalid file path' }
+  }
+
+  // 📌 Datei aus Supabase Storage löschen
+  const { error } = await supabase.storage.from(bucketName).remove([filePath])
 
   if (error) {
-    console.error('❌ Error uploading profile image:', error.message)
+    console.error('❌ Error deleting profile image:', error.message)
     return { error }
   }
 
-  // 🔹 Retrieve public URL
-  const { data: publicURL } = supabase.storage.from(bucketName).getPublicUrl(fileName)
-  return { url: publicURL.publicUrl, error: null }
+  console.log('✅ Profile Image Deleted:', filePath)
+  return { error: null }
 }

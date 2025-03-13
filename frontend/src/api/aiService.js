@@ -1,7 +1,7 @@
 import axios from 'axios'
 
-// 🔹 Setze `USE_AI = false`, um OpenAI zu deaktivieren und nur Fallbacks zu nutzen
-export const USE_AI = true // Setze auf `false`, wenn AI nicht verwendet werden soll.
+// export const USE_AI = true // Setze auf `false`, wenn AI nicht verwendet werden soll.
+export const USE_AI = import.meta.env.VITE_USE_AI === 'true';
 
 const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8080' // Fallback zu localhost
@@ -52,6 +52,7 @@ const getFallbackImage = (dressCode) => {
  *  🔹 Holt eine AI-generierte Dresscode-Idee oder nutzt das Fallback.
  */
 export const getDressCodeSuggestion = async () => {
+  console.log("VITE_USE_AI:", import.meta.env.VITE_USE_AI);
   if (!USE_AI) {
     console.warn('⚠️ AI deaktiviert – verwende Fallback-Dresscode.')
     return getFallbackDressCode()
@@ -94,6 +95,7 @@ export const getDressCodeSuggestion = async () => {
  *  🔹 Generiert ein AI-Bild oder nutzt ein Fallback.
  */
 export const generateEventImage = async (dressCode, setLoading) => {
+  console.log("VITE_USE_AI:", import.meta.env.VITE_USE_AI);
   if (!dressCode) {
     console.warn('⚠️ Kein Dresscode vorhanden – verwende Fallback.')
     return { imageUrl: getFallbackImage(null), error: 'Kein Dresscode vorhanden' }

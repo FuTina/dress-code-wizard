@@ -19,17 +19,16 @@
       ></div>
     </div>
 
-    <!-- Main Content Box -->
+    <!-- Main Content Box (transparente Karte ohne doppelten weißen Kasten) -->
     <div
       class="relative bg-white/50 backdrop-blur-lg shadow-2xl p-6 rounded-xl w-full max-w-3xl text-center border-2 border-purple-500 mt-16"
     >
-      <div class="bg-white rounded-lg p-8 shadow-md">
-        <router-view />
-        <!-- Displays the active route component -->
-      </div>
+      <router-view />
+      <!-- Displays the active route component -->
     </div>
   </div>
 </template>
+
 
 <script>
 // Import Navbar component

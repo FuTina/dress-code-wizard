@@ -1,48 +1,80 @@
 <template>
-  <div class="max-w-lg mx-auto p-6 bg-white shadow-lg rounded-lg text-center">
-    <h1 class="text-xl font-bold text-purple-700">👤 Your Profile</h1>
+  <div class="max-w-lg mx-auto p-6 min-h-screen flex flex-col items-center">
+    <div class="bg-white shadow-md rounded-lg p-6 w-full max-w-md transition">
+      <h1 class="text-2xl font-semibold text-purple-700 mb-6">👤 Your Profile</h1>
 
-    <div v-if="user" class="mt-4">
-      <!-- 🖼 Profile Image -->
-      <img
-        :src="previewImage || user.user_metadata?.image_url || '/icons/user.svg'"
-        alt="Profile"
-        class="w-24 h-24 rounded-full mx-auto object-cover border border-gray-300 shadow-md"
-      />
+      <div v-if="user">
+        <!-- 🖼 Profilbild -->
+        <div class="relative mx-auto w-32 h-32">
+          <img
+            :src="previewImage || user.user_metadata?.image_url || '/icons/user.svg'"
+            alt="Profile"
+            class="w-full h-full rounded-full border border-gray-300 object-cover shadow-md"
+          />
+        </div>
 
-      <!-- 📂 File Input -->
-      <input type="file" @change="handleFileUpload" class="mt-2 w-full p-2 border rounded" />
+        <!-- 📂 Datei-Upload & Aktionen -->
+        <div class="mt-5 flex flex-col gap-3 w-full">
+          <input type="file" @change="handleFileUpload" class="hidden" ref="fileInput" />
 
-      <!-- 💾 Save Button (nur sichtbar, wenn ein neues Bild hochgeladen wurde) -->
-      <button
-        v-if="imageFile"
-        @click="saveProfileImage"
-        class="mt-2 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
-      >
-        💾 Save Profile Image
-      </button>
+          <button
+            @click="$refs.fileInput.click()"
+            class="bg-gray-100 text-gray-700 px-4 py-2 rounded hover:bg-gray-200 transition w-full text-sm"
+          >
+            📸 Change Picture
+          </button>
 
-      <!-- 🗑 Delete Profile Image -->
-      <button
-        v-if="user.user_metadata?.image_url"
-        @click="deleteProfileImage"
-        class="mt-2 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-700 transition"
-      >
-        ❌ Delete Image
-      </button>
+          <button
+            v-if="imageFile"
+            @click="saveProfileImage"
+            class="bg-blue-400 text-white px-4 py-2 rounded hover:bg-blue-500 transition w-full text-sm"
+          >
+            💾 Save Image
+          </button>
 
-      <p class="mt-2"><strong>Email:</strong> {{ user.email }}</p>
-      <p><strong>User ID:</strong> {{ user.id }}</p>
+          <button
+            v-if="user.user_metadata?.image_url"
+            @click="deleteProfileImage"
+            class="bg-red-400 text-white px-4 py-2 rounded hover:bg-red-500 transition w-full text-sm"
+          >
+            ❌ Remove Image
+          </button>
+        </div>
 
-      <button
-        @click="logout"
-        class="mt-4 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-700 transition"
-      >
-        Logout
-      </button>
+        <!-- 🔑 Passwort ändern -->
+        <div class="mt-6">
+          <h2 class="text-md font-semibold text-gray-700 mb-3">🔑 Change Password</h2>
+          <input
+            v-model="newPassword"
+            type="password"
+            placeholder="New Password"
+            class="w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:ring-purple-300"
+          />
+          <button
+            @click="changePassword"
+            class="mt-2 bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600 transition w-full text-sm"
+          >
+            🔄 Update Password
+          </button>
+        </div>
+
+        <!-- 🔹 Benutzerinfo -->
+        <div class="mt-6 text-gray-700 text-sm border-t pt-4">
+          <p><strong>Email:</strong> {{ user.email }}</p>
+          <p class="text-xs"><strong>User ID:</strong> {{ user.id }}</p>
+        </div>
+
+        <!-- 🚪 Logout Button -->
+        <button
+          @click="logout"
+          class="mt-6 bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 transition w-full text-sm"
+        >
+          Logout
+        </button>
+      </div>
+
+      <p v-else class="text-red-500 mt-4">Not logged in.</p>
     </div>
-
-    <p v-else class="text-red-500 mt-4">Not logged in.</p>
   </div>
 </template>
 
@@ -56,6 +88,7 @@ export default {
       user: null,
       imageFile: null,
       previewImage: null,
+      newPassword: '',
     }
   },
   async mounted() {
@@ -117,6 +150,21 @@ export default {
       await this.fetchUserData()
     },
 
+    async changePassword() {
+      if (!this.newPassword || this.newPassword.length < 6) {
+        alert('⚠️ Password must be at least 6 characters long.')
+        return
+      }
+
+      const { error } = await supabase.auth.updateUser({ password: this.newPassword })
+      if (error) {
+        alert('❌ Error updating password: ' + error.message)
+      } else {
+        alert('✅ Password updated successfully!')
+        this.newPassword = ''
+      }
+    },
+
     async logout() {
       await supabase.auth.signOut()
       this.user = null
@@ -125,3 +173,15 @@ export default {
   },
 }
 </script>
+
+<style>
+/* 📌 Hintergrund auf modernem Grauton setzen */
+body {
+  background-color: #f5f5f5;
+}
+
+/* 💡 Schatten für das Profilfeld */
+.bg-white {
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+</style>

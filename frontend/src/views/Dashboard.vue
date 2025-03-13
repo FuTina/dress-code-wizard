@@ -1,25 +1,23 @@
 <template>
-  <div class="max-w-4xl mx-auto p-6 bg-white shadow-lg rounded-lg min-h-screen">
-    <h1 class="text-2xl font-bold text-center text-purple-700 mb-4">📅 Your Events</h1>
-
-    <h2 class="text-lg font-bold text-gray-700 mt-6">📋 Event List</h2>
+  <div class="max-w-4xl mx-auto p-6 min-h-screen">
+    <h1 class="text-3xl font-bold text-center text-purple-600 mb-6">📅 Your Events</h1>
 
     <ul v-if="events.length > 0" class="mt-4 space-y-4">
       <li
         v-for="event in sortedEvents"
         :key="event.id"
-        class="p-4 border rounded-lg flex items-center justify-between bg-gray-50 shadow-md"
+        class="p-4 bg-white rounded-lg flex flex-col sm:flex-row items-center sm:justify-between shadow-md hover:shadow-lg transition-transform transform hover:scale-[1.02] border border-gray-200"
       >
-        <div class="flex items-center gap-4">
+        <!-- Event Bild & Details -->
+        <div class="flex flex-col sm:flex-row items-center gap-4 w-full">
           <img
             :src="event.image_url || getFallbackImage(event.dress_code)"
             alt="Event Image"
-            class="w-20 h-20 rounded-lg shadow-md object-cover"
+            class="w-36 h-36 sm:w-48 sm:h-48 rounded-lg shadow-md object-cover border border-gray-300"
           />
-          <div class="flex-1">
-            <strong class="text-lg text-gray-900">{{ event.name }}</strong> <br />
-            <span class="text-sm text-gray-600">📅 {{ formatDate(event.date) }}</span
-            ><br />
+          <div class="text-center sm:text-left flex-1">
+            <strong class="text-xl sm:text-2xl text-gray-900">{{ event.name }}</strong> <br />
+            <span class="text-sm text-gray-600">📅 {{ formatDate(event.date) }}</span><br />
             <span class="text-sm text-gray-600"
               >⏰ {{ event.startTime || '19:00' }} - {{ event.endTime || '20:00' }}</span
             ><br />
@@ -30,10 +28,11 @@
           </div>
         </div>
 
-        <div class="flex gap-1">
+        <!-- Buttons (Immer 2x2 Anordnung) -->
+        <div class="grid grid-cols-2 gap-2 mt-4 sm:mt-0 w-full max-w-[140px]">
           <button
             @click="downloadICS(event)"
-            class="bg-blue-500 text-white w-12 h-10 flex items-center justify-center rounded hover:bg-blue-700 transition"
+            class="bg-blue-400 text-white w-12 h-9 flex items-center justify-center rounded-lg hover:bg-blue-500 transition shadow-md"
             title="Download iCal Datei"
           >
             📅
@@ -41,7 +40,7 @@
 
           <button
             @click="openGoogleCalendar(event)"
-            class="bg-green-500 text-white w-12 h-10 flex items-center justify-center rounded hover:bg-green-700 transition"
+            class="bg-teal-400 text-white w-12 h-9 flex items-center justify-center rounded-lg hover:bg-teal-500 transition shadow-md"
             title="Zu Google Kalender hinzufügen"
           >
             📆
@@ -49,7 +48,7 @@
 
           <router-link
             :to="'/edit-event/' + event.id"
-            class="bg-yellow-500 text-white w-12 h-10 flex items-center justify-center rounded hover:bg-yellow-700 transition"
+            class="bg-amber-400 text-white w-12 h-9 flex items-center justify-center rounded-lg hover:bg-amber-500 transition shadow-md"
             title="Event bearbeiten"
           >
             ✏️
@@ -57,7 +56,7 @@
 
           <button
             @click="deleteEvent(event.id, event.image_url)"
-            class="bg-red-600 text-white w-12 h-10 flex items-center justify-center rounded hover:bg-red-800 transition"
+            class="bg-rose-400 text-white w-12 h-9 flex items-center justify-center rounded-lg hover:bg-rose-500 transition shadow-md"
             title="Event löschen"
           >
             ❌
@@ -66,9 +65,58 @@
       </li>
     </ul>
 
-    <p v-else class="text-center text-gray-500 mt-4">No events found. Create one now!</p>
+    <p v-else class="text-center text-gray-500 mt-6 text-lg">No events found. Create one now!</p>
   </div>
 </template>
+
+---
+
+### **🌈 Farbverbesserungen**
+- **Kalender-Download**: `bg-blue-400` → sanfteres Blau für **weniger grellen Look**
+- **Google-Kalender**: `bg-teal-400` → angenehmes Türkis für eine **sanfte, moderne Wirkung**
+- **Bearbeiten**: `bg-amber-400` → warmer, **goldener Ton statt knalligem Gelb**
+- **Löschen**: `bg-rose-400` → sanftes **Rosa-Rot statt harter roter Block**
+
+---
+
+### **📌 Mobile Optimierungen**
+```css
+<style>
+/* 📌 Mobile Verbesserungen */
+@media (max-width: 640px) {
+  .max-w-4xl {
+    max-width: 100%;
+    padding: 16px;
+  }
+
+  .p-4 {
+    padding: 12px;
+  }
+
+  .text-2xl {
+    font-size: 1.75rem;
+  }
+
+  /* 🟢 Größere Bilder für bessere Sichtbarkeit */
+  .w-36.h-36 {
+    width: 100px;
+    height: 100px;
+  }
+
+  /* 🟢 Kleinere Buttons für bessere Platznutzung */
+  .w-12.h-9 {
+    width: 42px;
+    height: 35px;
+  }
+}
+
+/* 🔹 Hintergrund modernisieren */
+body {
+  background-color: #f7f8fc;
+}
+</style>
+
+
 
 <script>
 import { getEvents, deleteEvent } from '@/api/eventService'

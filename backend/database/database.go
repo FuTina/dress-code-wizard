@@ -28,5 +28,6 @@ func ConnectDB() {
 
 	// 📌 Supabase Client initialisieren (RICHTIG!)
 	Supabase = supabase.CreateClient(supabaseURL, supabaseAnonKey)
+
 	log.Println("✅ Connected to Supabase!")
 }

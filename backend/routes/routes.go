@@ -10,7 +10,6 @@ import (
 
 // SetupRoutes registriert alle API-Endpunkte
 func SetupRoutes(app *fiber.App) {
-
 	// 🔹 Hole Variablen aus der .env Datei
 	frontendURL := os.Getenv("FRONTEND_URL")
 	if frontendURL == "" {
@@ -23,9 +22,24 @@ func SetupRoutes(app *fiber.App) {
 		return c.SendString("Backend API is running!")
 	})
 
-	// Speichert AI-Bilder
-	app.Post("/api/saveImage", api.SaveImage)
+	// Definiere die API-Gruppe
+	apiGroup := app.Group("/api")
 
+	// AI Image Upload Route (Bild speichern in Supabase)
+	apiGroup.Post("/saveImage", api.SaveImage)
+
+	// Events API (Event-Management)
+	apiGroup.Post("/events", api.CreateEvent)
+	apiGroup.Get("/events", api.GetEvents)
+	apiGroup.Get("/events/:id", api.GetEventByID)
+	apiGroup.Delete("/events/:id", api.DeleteEvent)
+
+	// Invitations API (Event-Einladungen)
+	apiGroup.Post("/invitations", api.CreateInvitation)
+	apiGroup.Get("/invitations", api.GetInvitations)
+	apiGroup.Post("/invitations/:id/accept", api.AcceptInvitation)
+
+	// CORS Preflight Handling
 	app.Options("/api/*", func(c *fiber.Ctx) error {
 		log.Println("🔹 CORS Preflight Request erhalten")
 		c.Set("Access-Control-Allow-Origin", frontendURL)
@@ -33,5 +47,4 @@ func SetupRoutes(app *fiber.App) {
 		c.Set("Access-Control-Allow-Headers", "Origin, Content-Type, Accept, Authorization")
 		return c.SendStatus(fiber.StatusNoContent)
 	})
-
 }

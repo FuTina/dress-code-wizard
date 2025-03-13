@@ -64,15 +64,15 @@ export const getDressCodeSuggestion = async () => {
     const response = await axios.post(
       'https://api.openai.com/v1/chat/completions',
       {
-        model: 'gpt-3.5-turbo',
+        model: 'gpt-4o-mini',
         messages: [
           {
             role: 'user',
             content:
-              'Give me a creative dress code for a date or dance event. Only return the dress code title without explanation.',
+              'Give me a creative dress code for a date, party or dance event. Only return the dress code title without explanation.',
           },
         ],
-        temperature: 1.8,
+        temperature: 1.7,
         max_tokens: 50,
       },
       {

@@ -235,4 +235,21 @@ export default {
 .submit-button:hover {
   transform: scale(1.05);
 }
+
+.download-button {
+  background-color: #c3b1e1;
+  /* Dezentes Lila */
+  color: white;
+  padding: 8px;
+  border-radius: 8px;
+  font-size: 14px;
+  margin-top: 10px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.download-button:hover {
+  background-color: #a38cc6;
+  /* Etwas dunkler bei Hover */
+}
 </style>

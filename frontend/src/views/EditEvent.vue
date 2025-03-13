@@ -33,7 +33,7 @@
           alt="Event Image"
           class="w-full h-48 object-cover rounded-lg shadow-md transition hover:scale-105"
         />
-        <button v-if="event.image_url" @click="deleteCurrentImage" class="download-button">
+        <button v-if="event.image_url" @click="deleteCurrentImage" class="delete-image-button">
           ❌ Delete Image
         </button>
       </div>
@@ -163,7 +163,8 @@ export default {
 }
 
 .download-button {
-  background-color: #e53e3e;
+  background-color: #c3b1e1;
+  /* Dezentes Lila */
   color: white;
   padding: 8px;
   border-radius: 8px;
@@ -174,6 +175,21 @@ export default {
 }
 
 .download-button:hover {
+  background-color: #a38cc6;
+}
+
+.delete-image-button {
+  background-color: #e53e3e;
+  color: white;
+  padding: 8px;
+  border-radius: 8px;
+  font-size: 14px;
+  margin-top: 10px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.delete-image-button:hover {
   background-color: #c53030;
 }
 

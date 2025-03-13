@@ -4,7 +4,6 @@ import axios from 'axios'
 export const USE_AI = true // Setze auf `false`, wenn AI nicht verwendet werden soll.
 
 const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY
-//const BACKEND_URL = 'http://localhost:8080/api/saveImage'; // Falls Backend auf anderem Port läuft, anpassen
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8080' // Fallback zu localhost
 
 // 🔹 Fallback Dresscodes
@@ -162,12 +161,13 @@ const saveGeneratedImage = async (imageUrl, dressCode) => {
     console.log(`💾 Sending image to backend for storage: ${imageUrl}`)
     console.log('🛠️ BACKEND_URL:', BACKEND_URL)
 
+    // 🔹 Sicherstellen, dass die URL immer korrekt aufgebaut ist
+    const apiUrl = `${BACKEND_URL.replace(/\/$/, '')}/api/saveImage`
+
     const response = await fetch(
-      `${BACKEND_URL}?imageUrl=${encodeURIComponent(imageUrl)}&dressCode=${encodeURIComponent(dressCode)}`,
+      `${apiUrl}?imageUrl=${encodeURIComponent(imageUrl)}&dressCode=${encodeURIComponent(dressCode)}`,
       { method: 'POST' },
     )
-
-    //  `${BACKEND_URL}/api/saveImage?imageUrl=${encodeURIComponent(imageUrl)}&dressCode=${encodeURIComponent(dressCode)}`,
 
     const data = await response.json()
     if (data.imageUrl) {

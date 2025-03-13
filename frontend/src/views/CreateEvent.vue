@@ -1,5 +1,5 @@
 <template>
-  <div class="max-w-lg mx-auto p-6 bg-white shadow-lg rounded-lg">
+  <div class="max-w-lg mx-auto p-6 bg-white shadow-xl rounded-xl">
     <h1 class="text-2xl font-bold text-center text-purple-700 mb-4">🎭 Create an Event</h1>
 
     <div class="space-y-4">
@@ -13,10 +13,10 @@
 
       <div class="flex gap-2">
         <input v-model="event.dress_code" class="input-field w-full" placeholder="Dress Code" />
-        <button @click="generateDressCode" class="action-button">🪄 AI Suggestion</button>
+        <button @click="generateDressCode" class="highlighted-button">🪄 AI Suggestion</button>
       </div>
 
-      <button v-if="USE_AI" @click="generateEventImage" class="action-button w-full relative" :disabled="isGenerating">
+      <button v-if="USE_AI" @click="generateEventImage" class="highlighted-button w-full relative" :disabled="isGenerating">
         🎨 Generate AI Image
         <span v-if="isGenerating" class="loader absolute right-4 top-2"></span>
       </button>
@@ -28,8 +28,15 @@
         <p class="text-gray-600 text-sm mt-2">Generating AI image, please wait...</p>
       </div>
 
+      <!-- 🔹 Moderner Datei-Upload -->
       <label class="block text-gray-700">Upload Event Image:</label>
-      <input type="file" @change="handleFileUpload" class="input-field" />
+      <div class="file-upload-container">
+        <button @click="triggerFileInput" class="file-upload-button">
+          <i class="fas fa-folder-open"></i> 
+          {{ imageFile ? imageFile.name : "Choose File" }}
+        </button>
+        <input type="file" ref="fileInput" @change="handleFileUpload" class="hidden" />
+      </div>
 
       <div v-if="previewImage" class="mt-4 text-center">
         <p class="text-gray-500 text-sm">Image Preview:</p>
@@ -72,14 +79,14 @@ export default {
     },
     getNextFullHour() {
       const date = new Date()
-      date.setMinutes(0, 0, 0) // Setze Minuten auf 00
-      date.setHours(date.getHours() + 1) // Nächste volle Stunde
+      date.setMinutes(0, 0, 0)
+      date.setHours(date.getHours() + 1)
       return date.toTimeString().substring(0, 5)
     },
     getNextFullHourPlusOne() {
       const date = new Date()
       date.setMinutes(0, 0, 0)
-      date.setHours(date.getHours() + 2) // Nächste volle Stunde +1h für Endzeit
+      date.setHours(date.getHours() + 2)
       return date.toTimeString().substring(0, 5)
     },
     async generateDressCode() {
@@ -87,32 +94,33 @@ export default {
     },
     async generateEventImage() {
       if (!this.event.dress_code) {
-        alert('❌ Please enter a dress code first!');
-        return;
+        alert('❌ Please enter a dress code first!')
+        return
       }
 
-      this.isGenerating = true; // Ladeanzeige aktivieren
+      this.isGenerating = true 
 
       try {
         const { imageUrl, error } = await generateEventImage(this.event.dress_code, (loading) => {
-          this.isGenerating = loading; // Ladezustand synchronisieren
-        });
+          this.isGenerating = loading
+        })
 
         if (error || !imageUrl) {
-          console.warn('⚠️ AI Image generation failed. Using fallback image.');
-          this.previewImage = this.getFallbackImage(this.event.dress_code);
+          console.warn('⚠️ AI Image generation failed. Using fallback image.')
+          this.previewImage = this.getFallbackImage(this.event.dress_code)
         } else {
-          this.previewImage = imageUrl;
-          console.log('✅ Image successfully loaded:', imageUrl);
+          this.previewImage = imageUrl
         }
       } catch (error) {
-        console.error('❌ AI Image Generation Error:', error);
-        this.previewImage = this.getFallbackImage(this.event.dress_code);
+        console.error('❌ AI Image Generation Error:', error)
+        this.previewImage = this.getFallbackImage(this.event.dress_code)
       } finally {
-        this.isGenerating = false; // Ladeanzeige beenden
+        this.isGenerating = false
       }
-    }
-    ,
+    },
+    triggerFileInput() {
+      this.$refs.fileInput.click()
+    },
     handleFileUpload(event) {
       this.imageFile = event.target.files[0]
       this.previewImage = URL.createObjectURL(this.imageFile)
@@ -148,87 +156,63 @@ export default {
 
 <style>
 .input-field {
-  padding: 10px;
+  padding: 12px;
   border: 2px solid #ddd;
-  border-radius: 8px;
+  border-radius: 10px;
   outline: none;
-  transition: border 0.2s ease-in-out;
+  transition: border 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
 }
 
 .input-field:focus {
-  border-color: #8a4df4;
+  border-color: #7e57c2;
+  box-shadow: 0 0 5px rgba(126, 87, 194, 0.4);
 }
 
-.action-button {
-  background-color: #6b46c1;
-  color: white;
-  padding: 10px;
-  border-radius: 8px;
-  font-size: 14px;
+/* 🔹 AI-Buttons (Helllila Hintergrund) */
+.highlighted-button {
+  background-color: #e0c3fc;
+  color: #4a148c;
+  padding: 12px;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: bold;
   text-align: center;
   transition: background 0.3s ease-in-out;
-  position: relative;
+  cursor: pointer;
 }
 
-.action-button:hover {
-  background-color: #553c9a;
+.highlighted-button:hover {
+  background-color: #d1b3f4;
 }
 
-.action-button:disabled {
-  background-color: #9a7bd7;
-  cursor: not-allowed;
+/* 🔹 Moderner Datei-Upload */
+.file-upload-container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
 }
 
-.submit-button {
-  background: linear-gradient(90deg, #6b46c1, #b794f4);
+.file-upload-button {
+  width: 100%;
+  background-color: #7e57c2;
   color: white;
   padding: 12px;
-  border-radius: 8px;
-  font-weight: bold;
-  transition: transform 0.2s ease-in-out;
+  border-radius: 10px;
+  font-size: 16px;
+  text-align: center;
+  transition: background 0.3s ease-in-out;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.file-upload-button:hover {
+  background-color: #6a4fb3;
 }
 
 .submit-button:hover {
   transform: scale(1.05);
-}
-
-.download-button {
-  margin-top: 8px;
-  background-color: #4a5568;
-  color: white;
-  padding: 6px 12px;
-  border-radius: 6px;
-  font-size: 14px;
-  transition: background 0.3s ease-in-out;
-}
-
-.download-button:hover {
-  background-color: #2d3748;
-}
-
-/* 🔄 Kleine Ladeanzeige für Button */
-.loader {
-  border: 4px solid rgba(255, 255, 255, 0.3);
-  border-top: 4px solid white;
-  border-radius: 50%;
-  width: 16px;
-  height: 16px;
-  animation: spin 0.8s linear infinite;
-}
-
-/* 🔄 Große Ladeanzeige */
-.loader-large {
-  border: 6px solid rgba(0, 0, 0, 0.1);
-  border-left-color: #6b46c1;
-  border-radius: 50%;
-  width: 40px;
-  height: 40px;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
 }
 </style>

@@ -1,7 +1,7 @@
-import axios from 'axios';
+import axios from 'axios'
 
-const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY;
-const BACKEND_URL = 'http://localhost:8080/api/saveImage'; // Falls Backend auf einem anderen Port läuft, anpassen
+const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY
+const BACKEND_URL = 'http://localhost:8080/api/saveImage' // Falls Backend auf einem anderen Port läuft, anpassen
 
 /**
  * Fetches an AI-generated dress code suggestion using OpenAI.
@@ -9,7 +9,7 @@ const BACKEND_URL = 'http://localhost:8080/api/saveImage'; // Falls Backend auf 
  */
 export const getDressCodeSuggestion = async () => {
   try {
-    console.log(`🔹 Requesting OpenAI dress code...`);
+    console.log(`🔹 Requesting OpenAI dress code...`)
 
     const response = await axios.post(
       'https://api.openai.com/v1/chat/completions',
@@ -18,7 +18,8 @@ export const getDressCodeSuggestion = async () => {
         messages: [
           {
             role: 'user',
-            content: 'Give me a creative dress code for a date or dance event. Only return the dress code title without explanation.',
+            content:
+              'Give me a creative dress code for a date or dance event. Only return the dress code title without explanation.',
           },
         ],
         temperature: 1.8,
@@ -29,16 +30,16 @@ export const getDressCodeSuggestion = async () => {
           Authorization: `Bearer ${OPENAI_API_KEY}`,
           'Content-Type': 'application/json',
         },
-      }
-    );
+      },
+    )
 
-    const suggestion = response.data?.choices?.[0]?.message?.content?.trim().replace(/["']/g, '');
-    return suggestion || getFallbackDressCode();
+    const suggestion = response.data?.choices?.[0]?.message?.content?.trim().replace(/["']/g, '')
+    return suggestion || getFallbackDressCode()
   } catch (error) {
-    console.error('❌ OpenAI error:', error.response?.data || error.message);
-    return getFallbackDressCode();
+    console.error('❌ OpenAI error:', error.response?.data || error.message)
+    return getFallbackDressCode()
   }
-};
+}
 
 /**
  * Returns a random fallback dress code if OpenAI API is unavailable.
@@ -54,9 +55,10 @@ const fallbackDressCodes = [
   'Futuristic Neon 🔮',
   'Beach Party 🌴',
   'Elegant Dinner 🥂',
-];
+]
 
-const getFallbackDressCode = () => fallbackDressCodes[Math.floor(Math.random() * fallbackDressCodes.length)];
+const getFallbackDressCode = () =>
+  fallbackDressCodes[Math.floor(Math.random() * fallbackDressCodes.length)]
 
 /**
  * Generates an AI-powered event invitation image based on the given dress code.
@@ -64,18 +66,19 @@ const getFallbackDressCode = () => fallbackDressCodes[Math.floor(Math.random() *
  */
 export const generateEventImage = async (dressCode, setLoading) => {
   if (!dressCode) {
-    console.warn('⚠️ No dress code provided – using fallback.');
-    return { imageUrl: '/fallback/default-event.jpg', error: 'No dress code provided' };
+    console.warn('⚠️ No dress code provided – using fallback.')
+    return { imageUrl: '/fallback/default-event.jpg', error: 'No dress code provided' }
   }
 
   try {
-    console.log(`🎨 Generating event image for dress code: "${dressCode}"`);
-    setLoading(true);
+    console.log(`🎨 Generating event image for dress code: "${dressCode}"`)
+    setLoading(true)
 
-    const cleanDressCode = dressCode.replace(/["']/g, '').trim();
+    const cleanDressCode = dressCode.replace(/["']/g, '').trim()
 
-    const prompt = `Generate a high-quality image of **people wearing stylish outfits** that fit the theme "${cleanDressCode}". 
-    The image should include fashionable clothing, elegant attire, or trendy outfits suitable for the theme.`;
+    const prompt = `Generate a high-quality image of **one man and one woman** wearing stylish outfits that fit the theme "${cleanDressCode}". 
+    The man and woman should be posing together in a fashionable setting, wearing elegant attire or trendy outfits suitable for the theme. 
+    Ensure the image features only these two individuals, with a clear focus on their clothing style.`
 
     // 🔹 Timeout auf 45 Sekunden erhöhen
     const response = await Promise.race([
@@ -92,27 +95,29 @@ export const generateEventImage = async (dressCode, setLoading) => {
             Authorization: `Bearer ${OPENAI_API_KEY}`,
             'Content-Type': 'application/json',
           },
-        }
+        },
       ),
-      new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout: AI Image took too long')), 45000)), // ⬅ Erhöht auf 45 Sekunden
-    ]);
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Timeout: AI Image took too long')), 45000),
+      ), // ⬅ Erhöht auf 45 Sekunden
+    ])
 
-    const imageUrl = response.data?.data?.[0]?.url;
-    if (!imageUrl) throw new Error('No image URL returned from OpenAI');
+    const imageUrl = response.data?.data?.[0]?.url
+    if (!imageUrl) throw new Error('No image URL returned from OpenAI')
 
-    console.log(`✅ AI image generated successfully: ${imageUrl}`);
+    console.log(`✅ AI image generated successfully: ${imageUrl}`)
 
     // 🔹 Bild an das Backend senden, um es in Supabase zu speichern
-    const savedImageUrl = await saveGeneratedImage(imageUrl, cleanDressCode);
+    const savedImageUrl = await saveGeneratedImage(imageUrl, cleanDressCode)
 
-    return { imageUrl: savedImageUrl, error: null };
+    return { imageUrl: savedImageUrl, error: null }
   } catch (error) {
-    console.error('❌ AI image generation failed:', error.message);
-    return { imageUrl: '/fallback/default-event.jpg', error: error.message };
+    console.error('❌ AI image generation failed:', error.message)
+    return { imageUrl: '/fallback/default-event.jpg', error: error.message }
   } finally {
-    setLoading(false);
+    setLoading(false)
   }
-};
+}
 
 /**
  * Speichert das generierte AI-Bild über das Backend in Supabase.
@@ -123,22 +128,22 @@ export const generateEventImage = async (dressCode, setLoading) => {
  */
 const saveGeneratedImage = async (imageUrl, dressCode) => {
   try {
-    console.log(`💾 Sending image to backend for storage: ${imageUrl}`);
+    console.log(`💾 Sending image to backend for storage: ${imageUrl}`)
 
     const response = await fetch(
       `${BACKEND_URL}?imageUrl=${encodeURIComponent(imageUrl)}&dressCode=${encodeURIComponent(dressCode)}`,
-      { method: 'POST' }
-    );
+      { method: 'POST' },
+    )
 
-    const data = await response.json();
+    const data = await response.json()
     if (data.imageUrl) {
-      console.log('✅ AI Image successfully saved:', data.imageUrl);
-      return data.imageUrl;
+      console.log('✅ AI Image successfully saved:', data.imageUrl)
+      return data.imageUrl
     } else {
-      throw new Error('Image save failed');
+      throw new Error('Image save failed')
     }
   } catch (error) {
-    console.error('❌ Error saving AI-generated image:', error);
-    return '/fallback/default-event.jpg';
+    console.error('❌ Error saving AI-generated image:', error)
+    return '/fallback/default-event.jpg'
   }
-};
+}

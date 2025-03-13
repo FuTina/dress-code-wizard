@@ -22,8 +22,8 @@
     </div>
 
     <!-- AI Image Generator -->
-    <button @click="generateEventImage" class="mt-2 bg-indigo-500 text-white px-4 py-2 rounded hover:bg-indigo-700 transition"
-      :disabled="isGenerating">
+    <button @click="generateEventImage"
+      class="mt-2 bg-indigo-500 text-white px-4 py-2 rounded hover:bg-indigo-700 transition" :disabled="isGenerating">
       🎨 Generate AI Image
     </button>
 
@@ -45,7 +45,8 @@
       <img :src="previewImage" alt="Event Image" class="w-full h-40 object-cover rounded shadow-md" />
     </div>
 
-    <button @click="createEvent" class="mt-4 bg-purple-600 text-white px-4 py-2 w-full rounded hover:bg-purple-800 transition">
+    <button @click="createEvent"
+      class="mt-4 bg-purple-600 text-white px-4 py-2 w-full rounded hover:bg-purple-800 transition">
       ✅ Save Event
     </button>
   </div>
@@ -80,7 +81,7 @@ export default {
   methods: {
     async generateDressCode() {
       this.event.dress_code = await getDressCodeSuggestion();
-      this.setFallbackImage();
+      this.previewImage = this.getFallbackImage(this.event.dress_code); // 🔹 Fallback sofort setzen
     },
     async generateEventImage() {
       if (!this.event.dress_code) {
@@ -98,14 +99,14 @@ export default {
 
         if (error || !imageUrl) {
           console.warn('⚠️ AI Image generation failed. Using fallback image.');
-          this.setFallbackImage();
+          this.previewImage = this.getFallbackImage(this.event.dress_code);
         } else {
           this.previewImage = imageUrl;
           console.log('✅ Image successfully loaded:', imageUrl);
         }
       } catch (error) {
         console.error('❌ AI Image Generation Error:', error);
-        this.setFallbackImage();
+        this.previewImage = this.getFallbackImage(this.event.dress_code);
       }
     },
 
@@ -113,30 +114,16 @@ export default {
       this.imageFile = event.target.files[0];
       this.previewImage = URL.createObjectURL(this.imageFile);
     },
-    setFallbackImage() {
-      this.previewImage = this.getFallbackImage(this.event.dress_code);
-    },
+
     getFallbackImage(dressCode) {
       if (!dressCode) return this.fallbackImages.default;
       const normalizedDressCode = dressCode.toLowerCase().trim();
-
-      const fallbackMapping = {
-        elegant: this.fallbackImages.elegant,
-        neverland: this.fallbackImages.neverland,
-        anime: this.fallbackImages.anime,
-        hero: this.fallbackImages.hero,
-        pyjama: this.fallbackImages.pyjama,
-        beach: this.fallbackImages.beach,
-        black: this.fallbackImages.black,
-        futuristic: this.fallbackImages.futuristic,
-        nineties: this.fallbackImages.nineties,
-      };
-
       return (
-        Object.entries(fallbackMapping).find(([key]) => normalizedDressCode.includes(key))?.[1] ||
+        Object.entries(this.fallbackImages).find(([key]) => normalizedDressCode.includes(key))?.[1] ||
         this.fallbackImages.default
       );
     },
+
     async createEvent() {
       if (!this.event.name || !this.event.date || !this.event.startTime || !this.event.endTime || !this.event.dress_code) {
         alert('❌ Please fill out all fields before saving!');
@@ -156,8 +143,9 @@ export default {
         }
       }
 
+      // 🔹 Stelle sicher, dass ein Bild existiert
       if (!imageUrl || imageUrl.startsWith('/fallback/')) {
-        imageUrl = window.location.origin + imageUrl;
+        imageUrl = this.getFallbackImage(this.event.dress_code);
       }
 
       console.log('📸 Final Image URL before saving:', imageUrl);

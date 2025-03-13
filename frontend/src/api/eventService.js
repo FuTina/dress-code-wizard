@@ -59,13 +59,12 @@ const getFallbackImage = (dressCode) => {
 }
 
 // 🔹 Event erstellen mit Korrektur für `image_url`
+// 🔹 Event erstellen mit Fallback-Korrektur
 export const createEvent = async (eventData, imageFile) => {
   const user = await getCurrentUser()
   if (!user) return { error: 'Not authenticated' }
 
   let imageUrl = eventData.image_url || ''
-
-  console.log('📸 Ursprüngliche Bild-URL vor dem Upload:', imageUrl)
 
   if (imageFile) {
     const uploadResult = await uploadEventImage(imageFile)
@@ -76,6 +75,7 @@ export const createEvent = async (eventData, imageFile) => {
     imageUrl = uploadResult.url
   }
 
+  // 🔹 Falls kein Bild hochgeladen wurde, setze ein Fallback-Bild
   if (!imageUrl || !imageUrl.startsWith('http')) {
     imageUrl = getFallbackImage(eventData.dress_code)
   }
@@ -96,7 +96,7 @@ export const createEvent = async (eventData, imageFile) => {
   return { data, error }
 }
 
-// 🔹 Events abrufen
+// 🔹 Events abrufen mit direktem Fallback
 export const getEvents = async () => {
   const now = DateTime.now().setZone('Europe/Berlin').startOf('day').toISODate()
   console.log('🗑️ Lösche abgelaufene Events vor:', now)

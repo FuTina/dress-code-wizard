@@ -21,7 +21,7 @@
 | **OpenAI API** | AI-Powered Dress Code Suggestions |
 | **Luxon** | Date & Time Handling |
 
-## 🛀 Installation
+## 🚰 Installation
 
 ### 1️⃣ **Backend Setup (Go + Fiber)**
 ```sh
@@ -40,12 +40,25 @@ npm run dev
 
 ## 🔑 Environment Variables
 
-Before running the project, create a `.env` file in the `/frontend` directory and add your own Supabase & OpenAI API keys:
+### **Frontend `.env` Configuration**
+Before running the frontend project, create a `.env` file in the `/frontend` directory and add your own Supabase & OpenAI API keys:
 
 ```ini
 VITE_SUPABASE_URL=your-supabase-url
 VITE_SUPABASE_ANON_KEY=your-anon-key
 VITE_OPENAI_API_KEY=your-openai-api-key
+VITE_BACKEND_URL=http://localhost:8080 # Change this if deploying
+```
+
+### **Backend `.env` Configuration**
+For the backend, create a `.env` file in the `/backend` directory and add the following environment variables:
+
+```ini
+SUPABASE_URL=https://your-supabase-url.supabase.co
+SUPABASE_ANON_KEY=your-anon-key
+OPENAI_API_KEY=your-openai-api-key
+PORT=8080
+FRONTEND_URL=http://localhost:5173  # Change this if deploying
 ```
 
 ## 🔐 Backend API Endpoints
@@ -54,22 +67,25 @@ The backend is built with **Go (Fiber)** and provides the following REST API end
 
 | Method | Endpoint        | Description |
 |--------|---------------|--------------|
-| `POST`  | `/events`       | Creates a new event |
-| `GET`   | `/events`       | Retrieves all upcoming events |
-| `GET`   | `/events/:id`   | Fetches a specific event by ID |
-| `DELETE` | `/events/:id`  | Deletes an event |
-| `POST`  | `/events/:id/invite` | Sends an invitation to a user |
-| `POST`  | `/events/:id/accept` | Accepts an event invitation |
+| `POST`  | `/api/events`       | Creates a new event |
+| `GET`   | `/api/events`       | Retrieves all upcoming events |
+| `GET`   | `/api/events/:id`   | Fetches a specific event by ID |
+| `DELETE` | `/api/events/:id`  | Deletes an event |
+| `POST`  | `/api/invitations` | Creates an event invitation |
+| `GET`   | `/api/invitations` | Retrieves all invitations |
+| `POST`  | `/api/invitations/:id/accept` | Accepts an event invitation |
 
 ### **📌 Example API Request: Create an Event**
-To create an event, send a `POST` request to `/events` with the following JSON body:
+To create an event, send a `POST` request to `/api/events` with the following JSON body:
 
 ```json
 {
   "name": "Casual Friday",
   "date": "2024-05-10T19:00:00Z",
-  "dress_code": "Smart Casual",
-  "use_ai": false
+  "startTime": "19:00",
+  "endTime": "21:00",
+  "dressCode": "Smart Casual",
+  "imageUrl": "https://example.com/image.jpg"
 }
 ```
 
@@ -79,8 +95,11 @@ To create an event, send a `POST` request to `/events` with the following JSON b
   "id": "abc123",
   "name": "Casual Friday",
   "date": "2024-05-10T19:00:00Z",
-  "dress_code": "Smart Casual",
-  "created_at": "2024-04-20T14:30:00Z"
+  "startTime": "19:00",
+  "endTime": "21:00",
+  "dressCode": "Smart Casual",
+  "imageUrl": "https://example.com/image.jpg",
+  "createdAt": "2024-04-20T14:30:00Z"
 }
 ```
 
@@ -91,4 +110,3 @@ To create an event, send a `POST` request to `/events` with the following JSON b
 
 ## 📚 License
 This project is licensed under the **MIT License**.
-

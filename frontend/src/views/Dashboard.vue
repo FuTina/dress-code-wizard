@@ -17,7 +17,8 @@
           />
           <div class="text-center sm:text-left flex-1">
             <strong class="text-xl sm:text-2xl text-gray-900">{{ event.name }}</strong> <br />
-            <span class="text-sm text-gray-600">📅 {{ formatDate(event.date) }}</span><br />
+            <span class="text-sm text-gray-600">📅 {{ formatDate(event.date) }}</span
+            ><br />
             <span class="text-sm text-gray-600"
               >⏰ {{ event.startTime || '19:00' }} - {{ event.endTime || '20:00' }}</span
             ><br />
@@ -69,18 +70,11 @@
   </div>
 </template>
 
----
-
-### **🌈 Farbverbesserungen**
-- **Kalender-Download**: `bg-blue-400` → sanfteres Blau für **weniger grellen Look**
-- **Google-Kalender**: `bg-teal-400` → angenehmes Türkis für eine **sanfte, moderne Wirkung**
-- **Bearbeiten**: `bg-amber-400` → warmer, **goldener Ton statt knalligem Gelb**
-- **Löschen**: `bg-rose-400` → sanftes **Rosa-Rot statt harter roter Block**
-
----
-
-### **📌 Mobile Optimierungen**
-```css
+--- ### **🌈 Farbverbesserungen** - **Kalender-Download**: `bg-blue-400` → sanfteres Blau für
+**weniger grellen Look** - **Google-Kalender**: `bg-teal-400` → angenehmes Türkis für eine **sanfte,
+moderne Wirkung** - **Bearbeiten**: `bg-amber-400` → warmer, **goldener Ton statt knalligem Gelb** -
+**Löschen**: `bg-rose-400` → sanftes **Rosa-Rot statt harter roter Block** --- ### **📌 Mobile
+Optimierungen** ```css
 <style>
 /* 📌 Mobile Verbesserungen */
 @media (max-width: 640px) {
@@ -115,8 +109,6 @@ body {
   background-color: #f7f8fc;
 }
 </style>
-
-
 
 <script>
 import { getEvents, deleteEvent } from '@/api/eventService'

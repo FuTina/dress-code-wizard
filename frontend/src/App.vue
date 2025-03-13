@@ -29,7 +29,6 @@
   </div>
 </template>
 
-
 <script>
 // Import Navbar component
 import Navbar from '@/components/Navbar.vue'

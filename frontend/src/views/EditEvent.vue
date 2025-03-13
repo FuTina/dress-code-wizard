@@ -1,48 +1,45 @@
 <template>
-  <div class="max-w-md mx-auto p-6 bg-white shadow-lg rounded-lg">
-    <h1 class="text-xl font-bold text-center text-purple-700">✏️ Edit Event</h1>
+  <div class="max-w-lg mx-auto p-6 bg-white shadow-xl rounded-xl">
+    <h1 class="text-2xl font-bold text-center text-purple-700 mb-4">✏️ Edit Event</h1>
 
-    <input v-model="eventName" class="w-full p-3 border rounded mb-2" placeholder="Event Name" />
+    <div class="space-y-4">
+      <input v-model="event.name" class="input-field" placeholder="Event Name" />
 
-    <label>Date:</label>
-    <input v-model="eventDate" type="date" class="w-full p-3 border rounded mb-2" />
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+        <input v-model="event.date" type="date" class="input-field" />
+        <input v-model="event.startTime" type="time" class="input-field" />
+        <input v-model="event.endTime" type="time" class="input-field" />
+      </div>
 
-    <label>Start Time:</label>
-    <input v-model="eventStartTime" type="time" class="w-full p-3 border rounded mb-2" />
+      <div class="flex gap-2">
+        <input v-model="event.dress_code" class="input-field w-full" placeholder="Dress Code" />
+      </div>
 
-    <label>End Time:</label>
-    <input v-model="eventEndTime" type="time" class="w-full p-3 border rounded mb-2" />
+      <!-- 🔹 Moderner Datei-Upload -->
+      <label class="block text-gray-700">Upload New Image:</label>
+      <div class="file-upload-container">
+        <button @click="triggerFileInput" class="file-upload-button">
+          <i class="fas fa-folder-open"></i>
+          {{ imageFile ? imageFile.name : 'Choose File' }}
+        </button>
+        <input type="file" ref="fileInput" @change="handleFileUpload" class="hidden" />
+      </div>
 
-    <label>Dress Code:</label>
-    <input v-model="dressCode" class="w-full p-3 border rounded mt-2" placeholder="Dress Code" />
+      <!-- 🖼 Current Event Image Preview -->
+      <div v-if="previewImage || event.image_url" class="mt-4 text-center">
+        <p class="text-gray-500 text-sm">Image Preview:</p>
+        <img
+          :src="previewImage || event.image_url"
+          alt="Event Image"
+          class="w-full h-48 object-cover rounded-lg shadow-md transition hover:scale-105"
+        />
+        <button v-if="event.image_url" @click="deleteCurrentImage" class="download-button">
+          ❌ Delete Image
+        </button>
+      </div>
 
-    <!-- 🖼 Current Event Image -->
-    <div v-if="eventImage" class="mt-4">
-      <p class="text-gray-600 text-sm">Current Image:</p>
-      <img
-        :src="eventImage || getFallbackImage(dressCode)"
-        alt="Event Image"
-        class="w-full h-40 object-cover rounded shadow-md"
-      />
-
-      <button
-        @click="deleteCurrentImage"
-        class="mt-2 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-700 transition"
-      >
-        ❌ Delete Image
-      </button>
+      <button @click="updateEvent" class="submit-button w-full">✅ Save Changes</button>
     </div>
-
-    <!-- 📂 File Upload -->
-    <label class="block mt-4">Upload New Image:</label>
-    <input type="file" @change="handleFileUpload" class="w-full p-2 border rounded mb-2" />
-
-    <button
-      @click="updateEvent"
-      class="mt-4 bg-green-600 text-white px-4 py-2 w-full rounded hover:bg-green-800"
-    >
-      ✅ Save Changes
-    </button>
   </div>
 </template>
 
@@ -53,29 +50,25 @@ import { uploadImage, deleteImage } from '@/api/storageService'
 export default {
   data() {
     return {
-      eventId: null,
-      eventName: '',
-      eventDate: '',
-      eventStartTime: '19:00',
-      eventEndTime: '20:00',
-      dressCode: '',
-      eventImage: null,
-      newImageFile: null,
-      fallbackImages: {
-        elegant: '/fallback/elegant.jpg',
-        neverland: '/fallback/neverland.jpg',
-        anime: '/fallback/anime.jpg',
-        hero: '/fallback/hero.jpg',
-        pyjama: '/fallback/pyjama.jpg',
+      event: {
+        id: null,
+        name: '',
+        date: '',
+        startTime: '',
+        endTime: '',
+        dress_code: '',
+        image_url: null,
       },
+      imageFile: null,
+      previewImage: null,
     }
   },
   async mounted() {
-    this.eventId = this.$route.params.id
+    this.event.id = this.$route.params.id
     const { data, error } = await supabase
       .from('events')
       .select('*')
-      .eq('id', this.eventId)
+      .eq('id', this.event.id)
       .single()
 
     if (error || !data) {
@@ -84,74 +77,116 @@ export default {
       return
     }
 
-    // ✅ Datum richtig formatieren
-    this.eventName = data.name
-    this.eventDate = data.date.split('T')[0] // Nur `YYYY-MM-DD`
-    this.eventStartTime = data.startTime.substring(0, 5) // `HH:MM`
-    this.eventEndTime = data.endTime.substring(0, 5)
-    this.dressCode = data.dress_code
-    this.eventImage = data.image_url
+    // ✅ Formatierung des Datums (YYYY-MM-DD)
+    this.event = { ...data }
+    this.event.date = data.date.split('T')[0] // Entfernt die Zeit und nimmt nur das Datum
+    this.event.startTime = data.startTime.substring(0, 5) // HH:MM extrahieren
+    this.event.endTime = data.endTime.substring(0, 5)
   },
   methods: {
+    triggerFileInput() {
+      this.$refs.fileInput.click()
+    },
     handleFileUpload(event) {
-      this.newImageFile = event.target.files[0]
+      this.imageFile = event.target.files[0]
+      this.previewImage = URL.createObjectURL(this.imageFile)
     },
-
-    getFallbackImage(dressCode) {
-      return this.fallbackImages[dressCode.toLowerCase()] || '/fallback/default.jpg'
-    },
-
     async deleteCurrentImage() {
-      if (!this.eventImage) {
-        alert('❌ No image to delete.')
-        return
-      }
-
-      const imagePath = this.eventImage.split('/').pop() // Extract filename
-      const { error } = await deleteImage('event-images', imagePath)
-
-      if (error) {
-        alert('❌ Error deleting image: ' + error.message)
-      } else {
-        alert('✅ Image deleted!')
-        this.eventImage = null
-
-        // 🔹 Entferne Bild-Referenz in der Datenbank
-        await supabase.from('events').update({ image_url: null }).eq('id', this.eventId)
-      }
+      if (!this.event.image_url) return
+      const imagePath = this.event.image_url.split('/').pop()
+      await deleteImage('event-images', imagePath)
+      await supabase.from('events').update({ image_url: null }).eq('id', this.event.id)
+      this.event.image_url = null
+      alert('✅ Image deleted!')
     },
-
     async updateEvent() {
-      let imageUrl = this.eventImage
-
-      if (this.newImageFile) {
-        const { url, error } = await uploadImage(this.newImageFile, 'event-images')
+      let imageUrl = this.event.image_url
+      if (this.imageFile) {
+        const { url, error } = await uploadImage(this.imageFile, 'event-images')
         if (error) {
-          alert('❌ Error uploading event image: ' + error.message)
+          alert('❌ Error uploading image')
           return
         }
         imageUrl = url
       }
-
-      const { error } = await supabase
+      await supabase
         .from('events')
-        .update({
-          name: this.eventName,
-          date: this.eventDate,
-          startTime: this.eventStartTime,
-          endTime: this.eventEndTime,
-          dress_code: this.dressCode,
-          image_url: imageUrl,
-        })
-        .eq('id', this.eventId)
-
-      if (error) {
-        alert('❌ Error updating event: ' + error.message)
-      } else {
-        alert('✅ Event updated!')
-        this.$router.push('/dashboard')
-      }
+        .update({ ...this.event, image_url: imageUrl })
+        .eq('id', this.event.id)
+      alert('✅ Event updated!')
+      this.$router.push('/dashboard')
     },
   },
 }
 </script>
+
+<style>
+.input-field {
+  padding: 12px;
+  border: 2px solid #ddd;
+  border-radius: 10px;
+  outline: none;
+  transition:
+    border 0.2s ease-in-out,
+    box-shadow 0.2s ease-in-out;
+}
+
+.input-field:focus {
+  border-color: #7e57c2;
+  box-shadow: 0 0 5px rgba(126, 87, 194, 0.4);
+}
+
+.file-upload-container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.file-upload-button {
+  width: 100%;
+  background-color: #7e57c2;
+  color: white;
+  padding: 12px;
+  border-radius: 10px;
+  font-size: 16px;
+  text-align: center;
+  transition: background 0.3s ease-in-out;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.file-upload-button:hover {
+  background-color: #6a4fb3;
+}
+
+.download-button {
+  background-color: #e53e3e;
+  color: white;
+  padding: 8px;
+  border-radius: 8px;
+  font-size: 14px;
+  margin-top: 10px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.download-button:hover {
+  background-color: #c53030;
+}
+
+.submit-button {
+  background: linear-gradient(90deg, #6b46c1, #b794f4);
+  color: white;
+  padding: 12px;
+  border-radius: 8px;
+  font-weight: bold;
+  transition: transform 0.2s ease-in-out;
+}
+
+.submit-button:hover {
+  transform: scale(1.05);
+}
+</style>

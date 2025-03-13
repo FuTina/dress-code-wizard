@@ -16,7 +16,12 @@
         <button @click="generateDressCode" class="highlighted-button">🪄 AI Suggestion</button>
       </div>
 
-      <button v-if="USE_AI" @click="generateEventImage" class="highlighted-button w-full relative" :disabled="isGenerating">
+      <button
+        v-if="USE_AI"
+        @click="generateEventImage"
+        class="highlighted-button w-full relative"
+        :disabled="isGenerating"
+      >
         🎨 Generate AI Image
         <span v-if="isGenerating" class="loader absolute right-4 top-2"></span>
       </button>
@@ -32,17 +37,24 @@
       <label class="block text-gray-700">Upload Event Image:</label>
       <div class="file-upload-container">
         <button @click="triggerFileInput" class="file-upload-button">
-          <i class="fas fa-folder-open"></i> 
-          {{ imageFile ? imageFile.name : "Choose File" }}
+          <i class="fas fa-folder-open"></i>
+          {{ imageFile ? imageFile.name : 'Choose File' }}
         </button>
         <input type="file" ref="fileInput" @change="handleFileUpload" class="hidden" />
       </div>
 
       <div v-if="previewImage" class="mt-4 text-center">
         <p class="text-gray-500 text-sm">Image Preview:</p>
-        <img :src="previewImage" alt="Event Image"
-          class="w-full h-48 object-cover rounded-lg shadow-md transition hover:scale-105" />
-        <button v-if="isSupabaseImage(previewImage)" @click="openImageInNewTab(previewImage)" class="download-button">
+        <img
+          :src="previewImage"
+          alt="Event Image"
+          class="w-full h-48 object-cover rounded-lg shadow-md transition hover:scale-105"
+        />
+        <button
+          v-if="isSupabaseImage(previewImage)"
+          @click="openImageInNewTab(previewImage)"
+          class="download-button"
+        >
           ⬇️ View & Download Image
         </button>
       </div>
@@ -65,12 +77,12 @@ export default {
         date: this.getTodayDate(),
         startTime: this.getNextFullHour(),
         endTime: this.getNextFullHourPlusOne(),
-        dress_code: ''
+        dress_code: '',
       },
       imageFile: null,
       previewImage: null,
       isGenerating: false,
-      USE_AI
+      USE_AI,
     }
   },
   methods: {
@@ -98,7 +110,7 @@ export default {
         return
       }
 
-      this.isGenerating = true 
+      this.isGenerating = true
 
       try {
         const { imageUrl, error } = await generateEventImage(this.event.dress_code, (loading) => {
@@ -126,7 +138,13 @@ export default {
       this.previewImage = URL.createObjectURL(this.imageFile)
     },
     async createEvent() {
-      if (!this.event.name || !this.event.date || !this.event.startTime || !this.event.endTime || !this.event.dress_code) {
+      if (
+        !this.event.name ||
+        !this.event.date ||
+        !this.event.startTime ||
+        !this.event.endTime ||
+        !this.event.dress_code
+      ) {
         alert('❌ Please fill out all fields before saving!')
         return
       }
@@ -139,7 +157,7 @@ export default {
         ...this.event,
         startTime: `${this.event.startTime}:00`,
         endTime: `${this.event.endTime}:00`,
-        image_url: imageUrl
+        image_url: imageUrl,
       })
       alert('✅ Event saved!')
       this.$router.push('/dashboard')
@@ -149,8 +167,8 @@ export default {
     },
     openImageInNewTab(url) {
       window.open(url, '_blank')
-    }
-  }
+    },
+  },
 }
 </script>
 
@@ -160,7 +178,9 @@ export default {
   border: 2px solid #ddd;
   border-radius: 10px;
   outline: none;
-  transition: border 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  transition:
+    border 0.2s ease-in-out,
+    box-shadow 0.2s ease-in-out;
 }
 
 .input-field:focus {

@@ -1,7 +1,12 @@
 <template>
-  <nav class="bg-gray-900 text-white p-4 flex justify-between items-center fixed top-0 left-0 w-full shadow-xl z-50">
+  <nav
+    class="bg-gray-900 text-white p-4 flex justify-between items-center fixed top-0 left-0 w-full shadow-xl z-50"
+  >
     <!-- Left: Logo mit Magic Wand Icon -->
-    <router-link to="/" class="font-bold flex items-center gap-2 hover:text-purple-400 transition whitespace-nowrap">
+    <router-link
+      to="/"
+      class="font-bold flex items-center gap-2 hover:text-purple-400 transition whitespace-nowrap"
+    >
       <MagicWand class="w-8 h-8 text-white" />
       <span v-if="!isSmallScreen">Dress-Code Wizard</span>
       <span v-else>DCW</span>
@@ -21,11 +26,15 @@
     <div class="flex items-center gap-4">
       <!-- Profil Dropdown (Nur sichtbar auf großen Bildschirmen) -->
       <div v-if="user && !isSmallScreen" class="relative">
-        <button @click="toggleDropdown"
-          class="bg-gray-800 px-4 py-2 rounded hover:bg-gray-700 transition flex items-center gap-2">
+        <button
+          @click="toggleDropdown"
+          class="bg-gray-800 px-4 py-2 rounded hover:bg-gray-700 transition flex items-center gap-2"
+        >
           <ProfileIcon class="w-8 h-8 text-white" />
           <span class="hidden sm:inline">{{ user.email.split('@')[0] }}</span>
-          <span class="transition-transform transform" :class="{ 'rotate-180': dropdownOpen }">▼</span>
+          <span class="transition-transform transform" :class="{ 'rotate-180': dropdownOpen }"
+            >▼</span
+          >
         </button>
 
         <!-- Dropdown Menü -->
@@ -42,16 +51,20 @@
       </div>
 
       <!-- Mobile Menu Button -->
-      <button @click="toggleMobileMenu" class="md:hidden text-3xl focus:outline-none transition-transform">
+      <button
+        @click="toggleMobileMenu"
+        class="md:hidden text-3xl focus:outline-none transition-transform"
+      >
         ☰
       </button>
     </div>
 
     <!-- Mobile Dropdown -->
     <transition name="slide">
-      <div v-if="mobileMenuOpen"
-        class="absolute top-16 left-0 w-full bg-gray-900 text-white shadow-md md:hidden flex flex-col z-40">
-        
+      <div
+        v-if="mobileMenuOpen"
+        class="absolute top-16 left-0 w-full bg-gray-900 text-white shadow-md md:hidden flex flex-col z-40"
+      >
         <router-link v-if="user" to="/dashboard" class="menu-item">
           <i class="fas fa-home"></i> Dashboard
         </router-link>

@@ -12,7 +12,7 @@ func main() {
 
 	// 📌 CORS aktivieren (Erlaubt Requests vom Frontend)
 	app.Use(cors.New(cors.Config{
-		AllowOrigins:     "http://localhost:5173,https://dress-code-wizard.vercel.app, https://your-backend-url.onrender.com",
+		AllowOrigins:     "http://localhost:5173, https://dress-code-wizard.vercel.app, https://your-backend-url.onrender.com",
 		AllowMethods:     "GET,POST,PUT,DELETE,OPTIONS",
 		AllowHeaders:     "Content-Type, Authorization",
 		AllowCredentials: true,

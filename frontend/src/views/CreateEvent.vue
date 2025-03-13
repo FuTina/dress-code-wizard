@@ -21,13 +21,20 @@
       </button>
     </div>
 
-    <!-- AI Image Generator -->
-    <button @click="generateEventImage"
-      class="mt-2 bg-indigo-500 text-white px-4 py-2 rounded hover:bg-indigo-700 transition" :disabled="isGenerating">
+    <!-- AI Image Generator (Nur aktiv, wenn AI genutzt wird) -->
+    <button 
+      v-if="USE_AI"
+      @click="generateEventImage"
+      class="mt-2 bg-indigo-500 text-white px-4 py-2 rounded hover:bg-indigo-700 transition" 
+      :disabled="isGenerating"
+    >
       🎨 Generate AI Image
     </button>
 
-    <!-- 🔄 Loading Spinner -->
+    <!-- Hinweis, wenn AI deaktiviert ist -->
+    <p v-else class="mt-2 text-sm text-gray-600">⚠️ AI Image Generation is currently disabled.</p>
+
+    <!-- 🔄 Loading Spinner (Wird nur bei AI-Aktivität angezeigt) -->
     <div v-if="isGenerating" class="mt-4 text-center">
       <div class="loader-container">
         <span class="loader"></span>
@@ -54,7 +61,7 @@
 
 <script>
 import { createEvent } from '@/api/eventService';
-import { getDressCodeSuggestion, generateEventImage } from '@/api/aiService';
+import { getDressCodeSuggestion, generateEventImage, USE_AI } from '@/api/aiService'; // 🔹 `USE_AI` importiert
 import { uploadImage } from '@/api/storageService';
 
 export default {
@@ -64,6 +71,7 @@ export default {
       imageFile: null,
       previewImage: null,
       isGenerating: false,
+      USE_AI, // 🔹 AI-Nutzung in die Daten einfügen
       fallbackImages: {
         elegant: '/fallback/elegant.jpg',
         neverland: '/fallback/neverland.jpg',
@@ -86,6 +94,12 @@ export default {
     async generateEventImage() {
       if (!this.event.dress_code) {
         alert('❌ Please enter a dress code first!');
+        return;
+      }
+
+      if (!this.USE_AI) {
+        alert('⚠️ AI image generation is currently disabled.');
+        this.previewImage = this.getFallbackImage(this.event.dress_code);
         return;
       }
 

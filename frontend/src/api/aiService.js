@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // 🔹 Setze `USE_AI = false`, um OpenAI zu deaktivieren und nur Fallbacks zu nutzen
-const USE_AI = true;
+export const USE_AI = true; // Setze auf `false`, wenn AI nicht verwendet werden soll.
 
 const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY;
 const BACKEND_URL = 'http://localhost:8080/api/saveImage'; // Falls Backend auf anderem Port läuft, anpassen

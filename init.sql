@@ -91,5 +91,6 @@ CREATE POLICY "Allow image upload for authenticated users"
 ON storage.objects
 FOR INSERT WITH CHECK (bucket_id = 'event-images');
 
-
+CREATE POLICY "Allow authenticated users to insert" ON storage.objects
+FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
 

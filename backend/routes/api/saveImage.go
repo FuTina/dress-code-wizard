@@ -19,6 +19,8 @@ func init() {
 
 // SaveImage speichert ein AI-generiertes Bild in Supabase Storage
 func SaveImage(c *fiber.Ctx) error {
+	log.Println("🌐 CORS Test: Request von", c.Get("Origin"))
+
 	imageUrl := c.Query("imageUrl")
 	dressCode := c.Query("dressCode")
 

@@ -165,6 +165,9 @@ const saveGeneratedImage = async (imageUrl, dressCode) => {
 
     // 🔹 Sicherstellen, dass die URL immer korrekt aufgebaut ist
     const apiUrl = `${BACKEND_URL.replace(/\/$/, '')}/api/saveImage`
+    console.log('🛠️ apiUrl:', apiUrl)
+
+    console.log(`${apiUrl}?imageUrl=${encodeURIComponent(imageUrl)}&dressCode=${encodeURIComponent(dressCode)}`)
 
     const response = await fetch(
       `${apiUrl}?imageUrl=${encodeURIComponent(imageUrl)}&dressCode=${encodeURIComponent(dressCode)}`,

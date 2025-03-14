@@ -71,7 +71,7 @@ export const generateOutfitDescription = async (dressCode) => {
         messages: [
           {
             role: 'user',
-            content: `Give a concise and stylish outfit recommendation suitable for a date or party under the theme: "${dressCode}". 
+            content: `Give a concise and stylish or creative outfit recommendation suitable for a date or party under the theme: "${dressCode}". 
             Keep it under 20 words and unisex.`,
           },
         ],
@@ -113,7 +113,7 @@ export const getFallbackImage = (dressCode) => {
 export const getDressCodeSuggestion = async () => {
   console.log('VITE_USE_AI:', import.meta.env.VITE_USE_AI)
   if (!USE_AI) {
-    console.warn('⚠️ AI deaktiviert – verwende Fallback-Dresscode.')
+    console.warn('⚠️ AI deaktiviert . verwende Fallback-Dresscode.')
     return getFallbackDressCode()
   }
 
@@ -156,12 +156,12 @@ export const getDressCodeSuggestion = async () => {
 export const generateEventImage = async (dressCode, setLoading) => {
   console.log('VITE_USE_AI:', import.meta.env.VITE_USE_AI)
   if (!dressCode) {
-    console.warn('⚠️ Kein Dresscode vorhanden – verwende Fallback.')
+    console.warn('⚠️ Kein Dresscode vorhanden - verwende Fallback.')
     return { imageUrl: getFallbackImage(null), error: 'Kein Dresscode vorhanden' }
   }
 
   if (!USE_AI) {
-    console.warn('⚠️ AI deaktiviert – verwende Fallback-Bild.')
+    console.warn('⚠️ AI deaktiviert - verwende Fallback-Bild.')
     return { imageUrl: getFallbackImage(dressCode), error: 'AI deaktiviert' }
   }
 

@@ -39,35 +39,43 @@
             >
           </div>
 
+          <!-- Buttons (Kalender & Bearbeiten/Löschen nebeneinander) -->
           <div class="grid grid-cols-2 gap-2 w-[140px] mx-auto sm:mx-0 sm:ml-auto mt-4 sm:mt-0">
-            <button
-              @click="downloadICS(event)"
-              class="bg-blue-400 text-white h-10 rounded-lg hover:bg-blue-500 transition shadow"
-              title="Download iCal"
-            >
-              📅
-            </button>
-            <button
-              @click="openGoogleCalendar(event)"
-              class="bg-teal-400 text-white h-10 rounded-lg hover:bg-teal-500 transition shadow"
-              title="Google Kalender"
-            >
-              📆
-            </button>
-            <router-link
-              :to="'/edit-event/' + event.id"
-              class="bg-amber-400 text-white h-10 rounded-lg hover:bg-amber-500 transition shadow flex items-center justify-center"
-              title="Bearbeiten"
-            >
-              ✏️
-            </router-link>
-            <button
-              @click="deleteEvent(event.id, event.image_url)"
-              class="bg-rose-400 text-white h-10 rounded-lg hover:bg-rose-500 transition shadow"
-              title="Löschen"
-            >
-              ❌
-            </button>
+            <!-- Erste Reihe: Kalender-Buttons -->
+            <div class="col-span-2 flex gap-2">
+              <button
+                @click="downloadICS(event)"
+                class="bg-blue-400 text-white flex-1 h-10 rounded-lg hover:bg-blue-500 transition shadow"
+                title="Download iCal"
+              >
+                📅
+              </button>
+              <button
+                @click="openGoogleCalendar(event)"
+                class="bg-teal-400 text-white flex-1 h-10 rounded-lg hover:bg-teal-500 transition shadow"
+                title="Google Kalender"
+              >
+                📆
+              </button>
+            </div>
+
+            <!-- Zweite Reihe: Edit/Delete -->
+            <div class="col-span-2 flex gap-2">
+              <router-link
+                :to="'/edit-event/' + event.id"
+                class="bg-amber-400 text-white flex-1 h-10 rounded-lg hover:bg-amber-500 transition shadow flex items-center justify-center"
+                title="Bearbeiten"
+              >
+                ✏️
+              </router-link>
+              <button
+                @click="deleteEvent(event.id, event.image_url)"
+                class="bg-rose-400 text-white flex-1 h-10 rounded-lg hover:bg-rose-500 transition shadow"
+                title="Löschen"
+              >
+                ❌
+              </button>
+            </div>
           </div>
         </div>
       </li>

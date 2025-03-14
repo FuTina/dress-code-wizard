@@ -3,7 +3,8 @@ CREATE TABLE IF NOT EXISTS events (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
     name TEXT NOT NULL,
-    date DATE NOT NULL,
+    startdate DATE NOT NULL,
+    enddate DATE NOT NULL,
     startTime TIME NOT NULL,
     endTime TIME NOT NULL,
     dress_code TEXT,
@@ -94,3 +95,10 @@ FOR INSERT WITH CHECK (bucket_id = 'event-images');
 CREATE POLICY "Allow authenticated users to insert" ON storage.objects
 FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
 
+
+CREATE POLICY "Users can insert their own events" ON events
+USING (auth.uid() = user_id)
+WITH CHECK (auth.uid() = user_id AND startdate <= enddate);
+
+CREATE POLICY "Users can update their own events" ON events
+USING (auth.uid() = user_id AND startdate <= enddate);

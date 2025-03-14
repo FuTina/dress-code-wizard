@@ -1,13 +1,14 @@
 import { DateTime } from 'luxon'
 
 export const generateICS = (event) => {
-  if (!event.date || !event.startTime || !event.endTime) {
+  if (!event.startdate || !event.enddate || !event.startTime || !event.endTime) {
     console.error('❌ Missing date or time in event:', event)
     return null
   }
 
-  // 🔹 Konvertiere `event.date` sicher von ISO in `yyyy-MM-dd`
-  const eventDate = DateTime.fromISO(event.date).toFormat('yyyy-MM-dd')
+  // 🔹 Konvertiere `startdate` und `enddate` sicher von ISO in `yyyy-MM-dd`
+  const eventStartDate = DateTime.fromISO(event.startdate).toFormat('yyyy-MM-dd')
+  const eventEndDate = DateTime.fromISO(event.enddate).toFormat('yyyy-MM-dd')
 
   // 🕑 Konvertiere die Zeit nach UTC für Google
   const formatUTC = (date, time) => {
@@ -35,15 +36,16 @@ export const generateICS = (event) => {
   }
 
   // 📌 Zeiten für Google (UTC)
-  const formattedStartUTC = formatUTC(event.date, event.startTime)
-  const formattedEndUTC = formatUTC(event.date, event.endTime)
+  const formattedStartUTC = formatUTC(event.startdate, event.startTime)
+  const formattedEndUTC = formatUTC(event.enddate, event.endTime)
 
   // 📌 Zeiten für iCloud (lokal Berlin)
-  const formattedStartBerlin = formatBerlinTime(event.date, event.startTime)
-  const formattedEndBerlin = formatBerlinTime(event.date, event.endTime)
+  const formattedStartBerlin = formatBerlinTime(event.startdate, event.startTime)
+  const formattedEndBerlin = formatBerlinTime(event.enddate, event.endTime)
 
   console.log('📌 Debug: ICS Event Zeiten:', {
-    eventDate,
+    eventStartDate,
+    eventEndDate,
     formattedStartUTC,
     formattedEndUTC,
     formattedStartBerlin,

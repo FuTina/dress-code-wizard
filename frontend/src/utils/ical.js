@@ -6,8 +6,8 @@ import { format } from 'date-fns'
  * @returns {string} - The ICS file content
  */
 export function generateICS(event) {
-  const dtStart = format(new Date(event.date), "yyyyMMdd'T'HHmmss'Z'")
-  const dtEnd = format(new Date(event.date), "yyyyMMdd'T'HHmmss'Z'")
+  const dtStart = format(new Date(event.startdate), "yyyyMMdd'T'HHmmss'Z'")
+  const dtEnd = format(new Date(event.enddate), "yyyyMMdd'T'HHmmss'Z'")
   const uid = `event-${event.id}@dress-code-wizard.com`
 
   return `BEGIN:VCALENDAR

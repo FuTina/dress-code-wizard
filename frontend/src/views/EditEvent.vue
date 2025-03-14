@@ -5,8 +5,19 @@
     <div class="space-y-4">
       <input v-model="event.name" class="input-field" placeholder="Event Name" />
 
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-        <input v-model="event.date" type="date" class="input-field" />
+      <!-- 📅 Startdatum + Enddatum -->
+      <div class="grid grid-cols-2 gap-2">
+        <div>
+          <label class="block text-gray-700 text-sm">Start Date</label>
+          <input v-model="event.startdate" type="date" class="input-field" />
+        </div>
+        <div>
+          <label class="block text-gray-700 text-sm">End Date</label>
+          <input v-model="event.enddate" type="date" class="input-field" />
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
         <input v-model="event.startTime" type="time" class="input-field" />
         <input v-model="event.endTime" type="time" class="input-field" />
       </div>
@@ -14,6 +25,14 @@
       <div class="flex gap-2">
         <input v-model="event.dress_code" class="input-field w-full" placeholder="Dress Code" />
       </div>
+
+      <!-- 📝 Bearbeitbare Beschreibung -->
+      <textarea
+        v-model="event.description"
+        class="input-field mt-2 w-full resize-none"
+        rows="3"
+        placeholder="Describe the outfit suggestion..."
+      ></textarea>
 
       <!-- 🔹 Moderner Datei-Upload -->
       <label class="block text-gray-700">Upload New Image:</label>
@@ -53,10 +72,12 @@ export default {
       event: {
         id: null,
         name: '',
-        date: '',
+        startdate: '',
+        enddate: '',
         startTime: '',
         endTime: '',
         dress_code: '',
+        description: '',
         image_url: null,
       },
       imageFile: null,
@@ -77,10 +98,11 @@ export default {
       return
     }
 
-    // ✅ Formatierung des Datums (YYYY-MM-DD)
+    // ✅ Setze Event-Daten mit Korrektur
     this.event = { ...data }
-    this.event.date = data.date.split('T')[0] // Entfernt die Zeit und nimmt nur das Datum
-    this.event.startTime = data.startTime.substring(0, 5) // HH:MM extrahieren
+    this.event.startdate = data.startdate.split('T')[0]
+    this.event.enddate = data.enddate.split('T')[0]
+    this.event.startTime = data.startTime.substring(0, 5)
     this.event.endTime = data.endTime.substring(0, 5)
   },
   methods: {
@@ -109,10 +131,21 @@ export default {
         }
         imageUrl = url
       }
+
       await supabase
         .from('events')
-        .update({ ...this.event, image_url: imageUrl })
+        .update({
+          name: this.event.name,
+          startdate: this.event.startdate,
+          enddate: this.event.enddate,
+          startTime: this.event.startTime,
+          endTime: this.event.endTime,
+          dress_code: this.event.dress_code,
+          description: this.event.description,
+          image_url: imageUrl,
+        })
         .eq('id', this.event.id)
+
       alert('✅ Event updated!')
       this.$router.push('/dashboard')
     },
@@ -160,22 +193,6 @@ export default {
 
 .file-upload-button:hover {
   background-color: #6a4fb3;
-}
-
-.download-button {
-  background-color: #c3b1e1;
-  /* Dezentes Lila */
-  color: white;
-  padding: 8px;
-  border-radius: 8px;
-  font-size: 14px;
-  margin-top: 10px;
-  cursor: pointer;
-  transition: background 0.3s;
-}
-
-.download-button:hover {
-  background-color: #a38cc6;
 }
 
 .delete-image-button {

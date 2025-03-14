@@ -5,23 +5,41 @@
     <div class="space-y-4">
       <input v-model="event.name" class="input-field" placeholder="Event Name" />
 
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-        <input v-model="event.date" type="date" class="input-field" />
-        <input v-model="event.startTime" type="time" class="input-field" />
-        <input v-model="event.endTime" type="time" class="input-field" />
+      <!-- 📅 Startdatum + Enddatum (Responsive Anpassung) -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        <div>
+          <label class="block text-gray-700 text-sm">Start Date</label>
+          <input v-model="event.startdate" type="date" class="input-field w-full" />
+        </div>
+        <div>
+          <label class="block text-gray-700 text-sm">End Date</label>
+          <input v-model="event.enddate" type="date" class="input-field w-full" />
+        </div>
       </div>
 
-      <div class="flex gap-2">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        <div>
+          <label class="block text-gray-700 text-sm">Start Time</label>
+          <input v-model="event.startTime" type="time" class="input-field w-full" />
+        </div>
+        <div>
+          <label class="block text-gray-700 text-sm">End Time</label>
+          <input v-model="event.endTime" type="time" class="input-field w-full" />
+        </div>
+      </div>
+
+      <div v-if="errorMessage" class="text-red-500 text-sm font-semibold text-center">
+        ⚠️ {{ errorMessage }}
+      </div>
+
+
+      <div class="flex flex-col sm:flex-row gap-2">
         <input v-model="event.dress_code" class="input-field w-full" placeholder="Dress Code" />
         <button @click="generateDressCode" class="highlighted-button">🪄 AI Suggestion</button>
       </div>
 
-      <button
-        v-if="USE_AI"
-        @click="generateEventImage"
-        class="highlighted-button w-full relative"
-        :disabled="isGenerating"
-      >
+      <button v-if="USE_AI" @click="generateEventImage" class="highlighted-button w-full relative"
+        :disabled="isGenerating">
         🎨 Generate AI Image
         <span v-if="isGenerating" class="loader absolute right-4 top-2"></span>
       </button>
@@ -33,7 +51,7 @@
         <p class="text-gray-600 text-sm mt-2">Generating AI image, please wait...</p>
       </div>
 
-      <!-- 🔹 Moderner Datei-Upload -->
+      <!-- 🔹 Datei-Upload -->
       <label class="block text-gray-700">Upload Event Image:</label>
       <div class="file-upload-container">
         <button @click="triggerFileInput" class="file-upload-button">
@@ -45,25 +63,13 @@
 
       <div v-if="previewImage" class="mt-4 text-center">
         <p class="text-gray-500 text-sm">Image Preview:</p>
-        <img
-          :src="previewImage"
-          alt="Event Image"
-          class="w-full h-48 object-cover rounded-lg shadow-md transition hover:scale-105"
-        />
+        <img :src="previewImage" alt="Event Image"
+          class="w-full h-48 object-cover rounded-lg shadow-md transition hover:scale-105" />
 
-        <!-- ✨ Editierbare Beschreibung -->
-        <textarea
-          v-model="outfitDescription"
-          class="input-field mt-2 w-full resize-none"
-          rows="3"
-          placeholder="Describe the outfit suggestion..."
-        ></textarea>
+        <textarea v-model="outfitDescription" class="input-field mt-2 w-full resize-none" rows="3"
+          placeholder="Describe the outfit suggestion..."></textarea>
 
-        <button
-          v-if="isSupabaseImage(previewImage)"
-          @click="openImageInNewTab(previewImage)"
-          class="download-button"
-        >
+        <button v-if="isSupabaseImage(previewImage)" @click="openImageInNewTab(previewImage)" class="download-button">
           ⬇️ View & Download Image
         </button>
       </div>
@@ -90,7 +96,8 @@ export default {
     return {
       event: {
         name: '',
-        date: this.getTodayDate(),
+        startdate: this.getTodayDate(),
+        enddate: this.getTodayDate(),
         startTime: this.getNextFullHour(),
         endTime: this.getNextFullHourPlusOne(),
         dress_code: '',
@@ -100,6 +107,7 @@ export default {
       isGenerating: false,
       USE_AI,
       outfitDescription: getFallbackDescription('default'), // Standardbeschreibung setzen
+      errorMessage: '', // ✅ Fehler-Property hinzugefügt, um Vue-Warnung zu vermeiden
     }
   },
   methods: {
@@ -120,6 +128,62 @@ export default {
     },
     async generateDressCode() {
       this.event.dress_code = await getDressCodeSuggestion()
+    },
+    validateDates() {
+      const start = new Date(`${this.event.startdate}T${this.event.startTime}`)
+      const end = new Date(`${this.event.enddate}T${this.event.endTime}`)
+
+      if (end < start) {
+        this.errorMessage = '⚠️ End date cannot be before start date!'
+        return false
+      }
+      if (this.event.endTime === '00:00' && this.event.startdate === this.event.enddate) {
+        this.errorMessage = '⚠️ Events cannot end exactly at midnight!'
+        return false
+      }
+      this.errorMessage = ''
+      return true
+    },
+    async createEvent() {
+      if (!this.validateDates()) return
+
+      if (
+        !this.event.name ||
+        !this.event.startdate ||
+        !this.event.enddate ||
+        !this.event.startTime ||
+        !this.event.endTime ||
+        !this.event.dress_code
+      ) {
+        alert('❌ Please fill out all fields before saving!')
+        return
+      }
+
+      let imageUrl = this.previewImage
+      if (this.imageFile) {
+        const { url } = await uploadImage(this.imageFile, 'event-images')
+        imageUrl = url
+      }
+
+      await createEvent({
+        name: this.event.name,
+        startdate: this.event.startdate, // 🆕 Startdatum speichern
+        enddate: this.event.enddate, // 🆕 Enddatum speichern
+        startTime: `${this.event.startTime}:00`,
+        endTime: `${this.event.endTime}:00`,
+        dress_code: this.event.dress_code,
+        image_url: imageUrl,
+        description: this.outfitDescription.trim(),
+      })
+
+      alert('✅ Event saved!')
+      this.$router.push('/dashboard')
+    },
+    isSupabaseImage(url) {
+      return url.includes('supabase.co/storage')
+    },
+    openImageInNewTab(url) {
+      window.open(url, '_blank')
     },
 
     async generateEventImage() {
@@ -157,8 +221,11 @@ export default {
 
     /** 🔹 Setzt Fallback-Bild und Beschreibung, wenn kein AI-Image generiert wird */
     setFallbackImageAndDescription() {
-      this.previewImage = getFallbackImage(this.event.dress_code?.trim().toLowerCase() || 'default')
-      this.outfitDescription = getFallbackDescription(this.event.dress_code || 'default')
+      this.previewImage =
+        getFallbackImage(this.event.dress_code?.trim().toLowerCase()) || getFallbackImage('default')
+      this.outfitDescription =
+        getFallbackDescription(this.event.dress_code?.trim().toLowerCase()) ||
+        getFallbackDescription('default')
 
       console.log('🖼️ Fallback Image:', this.previewImage)
       console.log('📄 Fallback Description:', this.outfitDescription)
@@ -174,38 +241,6 @@ export default {
       console.log('📸 Uploaded Image Preview:', this.previewImage)
     },
 
-    async createEvent() {
-      if (
-        !this.event.name ||
-        !this.event.date ||
-        !this.event.startTime ||
-        !this.event.endTime ||
-        !this.event.dress_code
-      ) {
-        alert('❌ Please fill out all fields before saving!')
-        return
-      }
-      let imageUrl = this.previewImage
-      if (this.imageFile) {
-        const { url } = await uploadImage(this.imageFile, 'event-images')
-        imageUrl = url
-      }
-      await createEvent({
-        ...this.event,
-        startTime: `${this.event.startTime}:00`,
-        endTime: `${this.event.endTime}:00`,
-        image_url: imageUrl,
-        description: this.outfitDescription.trim(), // Speichert die bearbeitete Beschreibung
-      })
-      alert('✅ Event saved!')
-      this.$router.push('/dashboard')
-    },
-    isSupabaseImage(url) {
-      return url.includes('supabase.co/storage')
-    },
-    openImageInNewTab(url) {
-      window.open(url, '_blank')
-    },
     async generateOutfitDescription() {
       if (!this.event.dress_code) return
       this.outfitDescription = await generateOutfitDescription(this.event.dress_code)
@@ -215,6 +250,7 @@ export default {
 </script>
 
 <style>
+/* Standard-Styling für Eingabefelder */
 .input-field {
   padding: 12px;
   border: 2px solid #ddd;
@@ -223,6 +259,7 @@ export default {
   transition:
     border 0.2s ease-in-out,
     box-shadow 0.2s ease-in-out;
+  width: 100%;
 }
 
 .input-field:focus {
@@ -230,7 +267,7 @@ export default {
   box-shadow: 0 0 5px rgba(126, 87, 194, 0.4);
 }
 
-/* 🔹 AI-Buttons (Helllila Hintergrund) */
+/* 🔹 AI-Buttons */
 .highlighted-button {
   background-color: #e0c3fc;
   color: #4a148c;
@@ -241,13 +278,14 @@ export default {
   text-align: center;
   transition: background 0.3s ease-in-out;
   cursor: pointer;
+  width: 100%;
 }
 
 .highlighted-button:hover {
   background-color: #d1b3f4;
 }
 
-/* 🔹 Moderner Datei-Upload */
+/* 🔹 Datei-Upload */
 .file-upload-container {
   width: 100%;
   display: flex;
@@ -274,13 +312,36 @@ export default {
   background-color: #6a4fb3;
 }
 
-.submit-button:hover {
-  transform: scale(1.05);
+/* 📌 Responsive Anpassungen */
+@media (max-width: 640px) {
+  .grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .input-field {
+    font-size: 14px;
+    padding: 10px;
+  }
+
+  .highlighted-button {
+    font-size: 14px;
+    padding: 10px;
+  }
+
+  .file-upload-button {
+    font-size: 14px;
+    padding: 10px;
+  }
 }
 
+/* ✨ Optimierung für Beschreibung */
+textarea.input-field {
+  min-height: 80px;
+}
+
+/* ✨ Download-Button */
 .download-button {
   background-color: #c3b1e1;
-  /* Dezentes Lila */
   color: white;
   padding: 8px;
   border-radius: 8px;
@@ -292,6 +353,5 @@ export default {
 
 .download-button:hover {
   background-color: #a38cc6;
-  /* Etwas dunkler bei Hover */
 }
 </style>

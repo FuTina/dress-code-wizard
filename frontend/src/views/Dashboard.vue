@@ -3,80 +3,60 @@
     <h1 class="text-3xl font-bold text-center text-purple-600 mb-6">📅 Your Events</h1>
 
     <ul v-if="events.length > 0" class="mt-4 space-y-4">
-      <li
-        v-for="event in sortedEvents"
-        :key="event.id"
-        class="p-4 bg-white rounded-lg flex flex-col sm:flex-row items-center sm:justify-between shadow-md hover:shadow-lg transition-transform transform hover:scale-[1.02] border border-gray-200"
-      >
+      <li v-for="event in sortedEvents" :key="event.id"
+        class="p-4 bg-white rounded-lg flex flex-col sm:flex-row items-center sm:justify-between shadow-md hover:shadow-lg transition-transform transform hover:scale-[1.02] border border-gray-200">
         <!-- Event Bild & Details -->
         <div class="flex flex-col sm:flex-row items-center gap-4 w-full">
-          <img
-            :src="event.image_url || getFallbackImage(event.dress_code)"
-            alt="Event Image"
-            class="w-36 h-36 sm:w-48 sm:h-48 rounded-lg shadow-md object-cover border border-gray-300"
-          />
+          <img :src="event.image_url || getFallbackImage(event.dress_code)" alt="Event Image"
+            class="w-36 h-36 sm:w-48 sm:h-48 rounded-lg shadow-md object-cover border border-gray-300" />
 
           <!-- <img :src="event.image_url || getFallbackImage(event.dress_code)" alt="Event Image"
             class="w-32 h-32 sm:w-40 sm:h-40 rounded-lg shadow-md object-cover border border-gray-300" /> -->
 
           <div class="text-center sm:text-left flex-1">
             <strong class="text-xl sm:text-2xl text-gray-900">{{ event.name }}</strong> <br />
-            <span class="text-sm text-gray-600">📅 {{ formatDate(event.date) }}</span
+            <span class="text-sm text-gray-600">📅 {{ formatDateRange(event.startdate, event.enddate) }}</span>
             ><br />
-            <span class="text-sm text-gray-600"
-              >⏰ {{ event.startTime || '19:00' }} - {{ event.endTime || '20:00' }}</span
-            ><br />
+            <span class="text-sm text-gray-600">⏰ {{ event.startTime || '19:00' }} - {{ event.endTime || '20:00'
+              }}</span><br />
 
             <!-- ✨ Beschreibung zum Ein- & Ausklappen -->
             <div v-if="event.description" class="description-box">
               <p :class="{ 'line-clamp': expandedEventId !== event.id }">
                 {{ event.description }}
               </p>
-              <button
-                @click="toggleExpand(event.id)"
-                class="text-purple-500 hover:underline text-xs font-semibold"
-              >
+              <button @click="toggleExpand(event.id)" class="text-purple-500 hover:underline text-xs font-semibold">
                 {{ expandedEventId === event.id ? 'Weniger anzeigen' : 'Mehr anzeigen' }}
               </button>
             </div>
 
-            <span class="text-gray-500 italic block mt-2"
-              >👗 {{ event.dress_code || 'Casual' }}</span
-            >
+            <span class="text-gray-500 italic block mt-2">👗 {{ event.dress_code || 'Casual' }}</span>
           </div>
         </div>
 
         <!-- Buttons (Immer 2x2 Anordnung) -->
         <div class="grid grid-cols-2 gap-2 mt-4 sm:mt-0 w-full max-w-[140px]">
-          <button
-            @click="downloadICS(event)"
+          <button @click="downloadICS(event)"
             class="bg-blue-400 text-white w-12 h-9 flex items-center justify-center rounded-lg hover:bg-blue-500 transition shadow-md"
-            title="Download iCal Datei"
-          >
+            title="Download iCal Datei">
             📅
           </button>
 
-          <button
-            @click="openGoogleCalendar(event)"
+          <button @click="openGoogleCalendar(event)"
             class="bg-teal-400 text-white w-12 h-9 flex items-center justify-center rounded-lg hover:bg-teal-500 transition shadow-md"
-            title="Zu Google Kalender hinzufügen"
-          >
+            title="Zu Google Kalender hinzufügen">
             📆
           </button>
 
-          <router-link
-            :to="'/edit-event/' + event.id"
+          <router-link :to="'/edit-event/' + event.id"
             class="bg-amber-400 text-white w-12 h-9 flex items-center justify-center rounded-lg hover:bg-amber-500 transition shadow-md"
-            title="Event bearbeiten"
-          >
+            title="Event bearbeiten">
             ✏️
           </router-link>
 
-          <button
-            @click="deleteEvent(event.id, event.image_url)"
+          <button @click="deleteEvent(event.id, event.image_url)"
             class="bg-rose-400 text-white w-12 h-9 flex items-center justify-center rounded-lg hover:bg-rose-500 transition shadow-md"
-            title="Event löschen"
-          >
+            title="Event löschen">
             ❌
           </button>
         </div>
@@ -179,12 +159,18 @@ export default {
 
       return [...this.events]
         .filter((event) => {
-          const eventDate = DateTime.fromISO(event.date, { zone: 'Europe/Berlin' }).startOf('day')
+          const eventDate = DateTime.fromISO(event.startdate, { zone: 'Europe/Berlin' }).startOf(
+            'day',
+          )
           return eventDate >= now
         })
         .sort((a, b) => {
-          const dateTimeA = DateTime.fromISO(`${a.date}T${a.startTime}`, { zone: 'Europe/Berlin' })
-          const dateTimeB = DateTime.fromISO(`${b.date}T${b.startTime}`, { zone: 'Europe/Berlin' })
+          const dateTimeA = DateTime.fromISO(`${a.startdate}T${a.startTime}`, {
+            zone: 'Europe/Berlin',
+          })
+          const dateTimeB = DateTime.fromISO(`${b.startdate}T${b.startTime}`, {
+            zone: 'Europe/Berlin',
+          })
           return dateTimeA - dateTimeB
         })
     },
@@ -217,14 +203,29 @@ export default {
         alert('❌ Error deleting event: ' + error.message)
       }
     },
-    formatDate(dateString) {
-      if (!dateString) return 'Kein Datum'
-      return new Date(dateString).toLocaleDateString('de-DE', {
-        weekday: 'long',
+    // formatDate(dateString) {
+    //   if (!dateString) return 'Kein Datum'
+    //   return new Date(dateString).toLocaleDateString('de-DE', {
+    //     weekday: 'long',
+    //     day: '2-digit',
+    //     month: 'long',
+    //     year: 'numeric',
+    //   })
+    // },
+    formatDateRange(startdate, enddate) {
+      if (!startdate || !enddate) return 'Kein Datum'
+      const start = new Date(startdate).toLocaleDateString('de-DE', {
         day: '2-digit',
         month: 'long',
         year: 'numeric',
       })
+      const end = new Date(enddate).toLocaleDateString('de-DE', {
+        day: '2-digit',
+        month: 'long',
+        year: 'numeric',
+      })
+
+      return start === end ? start : `${start} - ${end}`
     },
     truncateText(text, maxLength) {
       return text.length > maxLength ? text.substring(0, maxLength) + '...' : text
@@ -247,21 +248,13 @@ export default {
     openGoogleCalendar(event) {
       console.log('🕑 Debug: Event Zeitdaten', event)
 
-      const startUTC = DateTime.fromISO(event.date)
+      const startUTC = DateTime.fromISO(`${event.startdate}T${event.startTime}`)
         .setZone('Europe/Berlin')
-        .plus({
-          hours: parseInt(event.startTime.split(':')[0]),
-          minutes: parseInt(event.startTime.split(':')[1]),
-        })
         .toUTC()
         .toFormat("yyyyMMdd'T'HHmmss'Z'")
 
-      const endUTC = DateTime.fromISO(event.date)
+      const endUTC = DateTime.fromISO(`${event.enddate}T${event.endTime}`)
         .setZone('Europe/Berlin')
-        .plus({
-          hours: parseInt(event.endTime.split(':')[0]),
-          minutes: parseInt(event.endTime.split(':')[1]),
-        })
         .toUTC()
         .toFormat("yyyyMMdd'T'HHmmss'Z'")
 

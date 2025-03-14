@@ -34,7 +34,9 @@
               </button>
             </div>
 
-            <span class="text-gray-500 italic block mt-2">👗 {{ event.dress_code || 'Casual' }}</span>
+            <span class="text-gray-500 italic block mt-2"
+              >👗 {{ event.dress_code || 'Casual' }}</span
+            >
           </div>
 
           <div class="grid grid-cols-2 gap-2 w-[140px] mx-auto sm:mx-0 sm:ml-auto mt-4 sm:mt-0">
@@ -77,12 +79,22 @@
 
 <style>
 @media (max-width: 640px) {
-  .max-w-4xl { max-width: 100%; padding: 16px; }
-  .w-36.h-36 { width: 100px; height: 100px; }
-  .description-box { max-width: 100%; }
+  .max-w-4xl {
+    max-width: 100%;
+    padding: 16px;
+  }
+  .w-36.h-36 {
+    width: 100px;
+    height: 100px;
+  }
+  .description-box {
+    max-width: 100%;
+  }
 }
 
-body { background-color: #f7f8fc; }
+body {
+  background-color: #f7f8fc;
+}
 
 .description-box {
   background: #f8f9fc;
@@ -103,7 +115,6 @@ body { background-color: #f7f8fc; }
   max-height: 40px;
 }
 </style>
-
 
 <script>
 import { getEvents, deleteEvent } from '@/api/eventService'

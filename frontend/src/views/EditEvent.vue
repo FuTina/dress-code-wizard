@@ -27,8 +27,12 @@
       </div>
 
       <!-- 📝 Bearbeitbare Beschreibung -->
-      <textarea v-model="event.description" class="input-field mt-2 w-full resize-none" rows="3"
-        placeholder="Describe the outfit suggestion..."></textarea>
+      <textarea
+        v-model="event.description"
+        class="input-field mt-2 w-full resize-none"
+        rows="3"
+        placeholder="Describe the outfit suggestion..."
+      ></textarea>
 
       <!-- 🔹 Moderner Datei-Upload -->
       <label class="block text-gray-700">Upload New Image:</label>
@@ -43,15 +47,32 @@
       <!-- 🖼 Current Event Image Preview -->
       <div v-if="previewImage || event.image_url" class="mt-4 text-center">
         <p class="text-gray-500 text-sm">Image Preview:</p>
-        <img :src="previewImage || event.image_url" alt="Event Image"
-          class="w-full h-48 object-cover rounded-lg shadow-md transition hover:scale-105" />
-        <button v-if="event.image_url" @click="deleteCurrentImage" class="delete-image-button">
-          ❌ Delete Image
-        </button>
+        <img
+          :src="previewImage || event.image_url"
+          alt="Event Image"
+          class="w-full h-48 object-cover rounded-lg shadow-md transition hover:scale-105"
+        />
+        <div class="flex justify-center gap-2 mt-2">
+          <a
+            v-if="event.image_url"
+            :href="event.image_url"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="download-button"
+          >
+            ⬇️ Download Image
+          </a>
+
+          <button v-if="event.image_url" @click="deleteCurrentImage" class="delete-image-button">
+            ❌ Delete Image
+          </button>
+        </div>
       </div>
 
       <button @click="updateEvent" class="submit-button w-full">✅ Save Changes</button>
-      <p v-if="errorMessage" class="text-red-500 font-semibold text-sm mt-2 text-center">{{ errorMessage }}</p>
+      <p v-if="errorMessage" class="text-red-500 font-semibold text-sm mt-2 text-center">
+        {{ errorMessage }}
+      </p>
     </div>
   </div>
 </template>
@@ -160,7 +181,7 @@ export default {
       alert('✅ Event updated!')
       this.$router.push('/dashboard')
     },
-  }
+  },
 }
 </script>
 
@@ -232,5 +253,21 @@ export default {
 
 .submit-button:hover {
   transform: scale(1.05);
+}
+
+/* ✨ Download-Button */
+.download-button {
+  background-color: #c3a2f7;
+  color: white;
+  padding: 8px;
+  border-radius: 8px;
+  font-size: 14px;
+  margin-top: 10px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.download-button:hover {
+  background-color: #a38cc6;
 }
 </style>

@@ -86,8 +86,6 @@ export const getEvents = async () => {
   }
 }
 
-
-
 // 🔹 Event aktualisieren
 export const updateEvent = async (eventId, updatedData, newImageFile) => {
   let imageUrl = updatedData.image_url
@@ -143,7 +141,6 @@ export const uploadEventImage = async (file) => {
   return { url: publicUrl }
 }
 
-
 // 🔹 Dresscode-Name normalisieren & passendes Fallback-Bild wählen
 const getFallbackImage = (dressCode) => {
   if (!dressCode) return dressCodeImages.default
@@ -153,10 +150,6 @@ const getFallbackImage = (dressCode) => {
   return match ? dressCodeImages[match] : dressCodeImages.default
 }
 
-
-
-
-
 // 🔹 Event abrufen
 export const getEventById = async (eventId) => {
   const { data, error } = await supabase.from('events').select('*').eq('id', eventId).single()
@@ -165,8 +158,6 @@ export const getEventById = async (eventId) => {
   }
   return { data, error }
 }
-
-
 
 // 🔹 Event löschen
 export const deleteEvent = async (eventId) => {

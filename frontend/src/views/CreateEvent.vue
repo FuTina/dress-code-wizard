@@ -32,14 +32,17 @@
         ⚠️ {{ errorMessage }}
       </div>
 
-
       <div class="flex flex-col sm:flex-row gap-2">
         <input v-model="event.dress_code" class="input-field w-full" placeholder="Dress Code" />
         <button @click="generateDressCode" class="highlighted-button">🪄 AI Suggestion</button>
       </div>
 
-      <button v-if="USE_AI" @click="generateEventImage" class="highlighted-button w-full relative"
-        :disabled="isGenerating">
+      <button
+        v-if="USE_AI"
+        @click="generateEventImage"
+        class="highlighted-button w-full relative"
+        :disabled="isGenerating"
+      >
         🎨 Generate AI Image
         <span v-if="isGenerating" class="loader absolute right-4 top-2"></span>
       </button>
@@ -63,13 +66,24 @@
 
       <div v-if="previewImage" class="mt-4 text-center">
         <p class="text-gray-500 text-sm">Image Preview:</p>
-        <img :src="previewImage" alt="Event Image"
-          class="w-full h-48 object-cover rounded-lg shadow-md transition hover:scale-105" />
+        <img
+          :src="previewImage"
+          alt="Event Image"
+          class="w-full h-48 object-cover rounded-lg shadow-md transition hover:scale-105"
+        />
 
-        <textarea v-model="outfitDescription" class="input-field mt-2 w-full resize-none" rows="3"
-          placeholder="Describe the outfit suggestion..."></textarea>
+        <textarea
+          v-model="outfitDescription"
+          class="input-field mt-2 w-full resize-none"
+          rows="3"
+          placeholder="Describe the outfit suggestion..."
+        ></textarea>
 
-        <button v-if="isSupabaseImage(previewImage)" @click="openImageInNewTab(previewImage)" class="download-button">
+        <button
+          v-if="isSupabaseImage(previewImage)"
+          @click="openImageInNewTab(previewImage)"
+          class="download-button"
+        >
           ⬇️ View & Download Image
         </button>
       </div>

@@ -3,62 +3,70 @@
     <h1 class="text-3xl font-bold text-center text-purple-600 mb-6">📅 Your Events</h1>
 
     <ul v-if="events.length > 0" class="mt-4 space-y-4">
-      <li v-for="event in sortedEvents" :key="event.id"
-        class="p-4 bg-white rounded-lg flex flex-col sm:flex-row items-center sm:justify-between shadow-md hover:shadow-lg transition-transform transform hover:scale-[1.02] border border-gray-200">
-        <!-- Event Bild & Details -->
-        <div class="flex flex-col sm:flex-row items-center gap-4 w-full">
-          <img :src="event.image_url || getFallbackImage(event.dress_code)" alt="Event Image"
-            class="w-36 h-36 sm:w-48 sm:h-48 rounded-lg shadow-md object-cover border border-gray-300" />
+      <li
+        v-for="event in sortedEvents"
+        :key="event.id"
+        class="p-4 bg-white rounded-lg shadow-md hover:shadow-lg transition-transform transform hover:scale-[1.02] border border-gray-200"
+      >
+        <div class="flex flex-col sm:flex-row sm:items-center gap-4">
+          <img
+            :src="event.image_url || getFallbackImage(event.dress_code)"
+            alt="Event Image"
+            class="w-36 h-36 sm:w-48 sm:h-48 rounded-lg shadow object-cover border border-gray-300 mx-auto sm:mx-0"
+          />
 
-          <!-- <img :src="event.image_url || getFallbackImage(event.dress_code)" alt="Event Image"
-            class="w-32 h-32 sm:w-40 sm:h-40 rounded-lg shadow-md object-cover border border-gray-300" /> -->
+          <div class="flex-1 text-center sm:text-left">
+            <strong class="text-xl sm:text-2xl text-gray-900">{{ event.name }}</strong>
+            <div class="text-sm text-gray-600">
+              📅 {{ formatDateRange(event.startdate, event.enddate) }}<br />
+              ⏰ {{ event.startTime || '19:00' }} - {{ event.endTime || '20:00' }}
+            </div>
 
-          <div class="text-center sm:text-left flex-1">
-            <strong class="text-xl sm:text-2xl text-gray-900">{{ event.name }}</strong> <br />
-            <span class="text-sm text-gray-600">📅 {{ formatDateRange(event.startdate, event.enddate) }}</span>
-            ><br />
-            <span class="text-sm text-gray-600">⏰ {{ event.startTime || '19:00' }} - {{ event.endTime || '20:00'
-              }}</span><br />
-
-            <!-- ✨ Beschreibung zum Ein- & Ausklappen -->
-            <div v-if="event.description" class="description-box">
+            <div v-if="event.description" class="description-box mx-auto sm:mx-0">
               <p :class="{ 'line-clamp': expandedEventId !== event.id }">
                 {{ event.description }}
               </p>
-              <button @click="toggleExpand(event.id)" class="text-purple-500 hover:underline text-xs font-semibold">
+              <button
+                @click="toggleExpand(event.id)"
+                class="text-purple-500 hover:underline text-xs font-semibold"
+              >
                 {{ expandedEventId === event.id ? 'Weniger anzeigen' : 'Mehr anzeigen' }}
               </button>
             </div>
 
             <span class="text-gray-500 italic block mt-2">👗 {{ event.dress_code || 'Casual' }}</span>
           </div>
-        </div>
 
-        <!-- Buttons (Immer 2x2 Anordnung) -->
-        <div class="grid grid-cols-2 gap-2 mt-4 sm:mt-0 w-full max-w-[140px]">
-          <button @click="downloadICS(event)"
-            class="bg-blue-400 text-white w-12 h-9 flex items-center justify-center rounded-lg hover:bg-blue-500 transition shadow-md"
-            title="Download iCal Datei">
-            📅
-          </button>
-
-          <button @click="openGoogleCalendar(event)"
-            class="bg-teal-400 text-white w-12 h-9 flex items-center justify-center rounded-lg hover:bg-teal-500 transition shadow-md"
-            title="Zu Google Kalender hinzufügen">
-            📆
-          </button>
-
-          <router-link :to="'/edit-event/' + event.id"
-            class="bg-amber-400 text-white w-12 h-9 flex items-center justify-center rounded-lg hover:bg-amber-500 transition shadow-md"
-            title="Event bearbeiten">
-            ✏️
-          </router-link>
-
-          <button @click="deleteEvent(event.id, event.image_url)"
-            class="bg-rose-400 text-white w-12 h-9 flex items-center justify-center rounded-lg hover:bg-rose-500 transition shadow-md"
-            title="Event löschen">
-            ❌
-          </button>
+          <div class="grid grid-cols-2 gap-2 w-[140px] mx-auto sm:mx-0 sm:ml-auto mt-4 sm:mt-0">
+            <button
+              @click="downloadICS(event)"
+              class="bg-blue-400 text-white h-10 rounded-lg hover:bg-blue-500 transition shadow"
+              title="Download iCal"
+            >
+              📅
+            </button>
+            <button
+              @click="openGoogleCalendar(event)"
+              class="bg-teal-400 text-white h-10 rounded-lg hover:bg-teal-500 transition shadow"
+              title="Google Kalender"
+            >
+              📆
+            </button>
+            <router-link
+              :to="'/edit-event/' + event.id"
+              class="bg-amber-400 text-white h-10 rounded-lg hover:bg-amber-500 transition shadow flex items-center justify-center"
+              title="Bearbeiten"
+            >
+              ✏️
+            </router-link>
+            <button
+              @click="deleteEvent(event.id, event.image_url)"
+              class="bg-rose-400 text-white h-10 rounded-lg hover:bg-rose-500 transition shadow"
+              title="Löschen"
+            >
+              ❌
+            </button>
+          </div>
         </div>
       </li>
     </ul>
@@ -67,46 +75,15 @@
   </div>
 </template>
 
---- ### **🌈 Farbverbesserungen** - **Kalender-Download**: `bg-blue-400` → sanfteres Blau für
-**weniger grellen Look** - **Google-Kalender**: `bg-teal-400` → angenehmes Türkis für eine **sanfte,
-moderne Wirkung** - **Bearbeiten**: `bg-amber-400` → warmer, **goldener Ton statt knalligem Gelb** -
-**Löschen**: `bg-rose-400` → sanftes **Rosa-Rot statt harter roter Block** --- ### **📌 Mobile
-Optimierungen** ```css
 <style>
-/* 📌 Mobile Verbesserungen */
 @media (max-width: 640px) {
-  .max-w-4xl {
-    max-width: 100%;
-    padding: 16px;
-  }
-
-  .p-4 {
-    padding: 12px;
-  }
-
-  .text-2xl {
-    font-size: 1.75rem;
-  }
-
-  /* 🟢 Größere Bilder für bessere Sichtbarkeit */
-  .w-36.h-36 {
-    width: 100px;
-    height: 100px;
-  }
-
-  /* 🟢 Kleinere Buttons für bessere Platznutzung */
-  .w-12.h-9 {
-    width: 42px;
-    height: 35px;
-  }
+  .max-w-4xl { max-width: 100%; padding: 16px; }
+  .w-36.h-36 { width: 100px; height: 100px; }
+  .description-box { max-width: 100%; }
 }
 
-/* 🔹 Hintergrund modernisieren */
-body {
-  background-color: #f7f8fc;
-}
+body { background-color: #f7f8fc; }
 
-/* ✨ Beschreibung optimieren */
 .description-box {
   background: #f8f9fc;
   padding: 8px;
@@ -117,7 +94,6 @@ body {
   max-width: 250px;
 }
 
-/* 📝 Zeilenbegrenzung für Vorschau */
 .line-clamp {
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -127,6 +103,7 @@ body {
   max-height: 40px;
 }
 </style>
+
 
 <script>
 import { getEvents, deleteEvent } from '@/api/eventService'

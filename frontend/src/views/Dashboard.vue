@@ -15,6 +15,10 @@
             alt="Event Image"
             class="w-36 h-36 sm:w-48 sm:h-48 rounded-lg shadow-md object-cover border border-gray-300"
           />
+
+          <!-- <img :src="event.image_url || getFallbackImage(event.dress_code)" alt="Event Image"
+            class="w-32 h-32 sm:w-40 sm:h-40 rounded-lg shadow-md object-cover border border-gray-300" /> -->
+
           <div class="text-center sm:text-left flex-1">
             <strong class="text-xl sm:text-2xl text-gray-900">{{ event.name }}</strong> <br />
             <span class="text-sm text-gray-600">📅 {{ formatDate(event.date) }}</span
@@ -22,10 +26,23 @@
             <span class="text-sm text-gray-600"
               >⏰ {{ event.startTime || '19:00' }} - {{ event.endTime || '20:00' }}</span
             ><br />
-            <span v-if="event.description" class="text-sm text-gray-700"
-              >📄 {{ event.description }}</span
-            ><br />
-            <span class="text-gray-500 italic">👗 {{ event.dress_code || 'Casual' }}</span>
+
+            <!-- ✨ Beschreibung zum Ein- & Ausklappen -->
+            <div v-if="event.description" class="description-box">
+              <p :class="{ 'line-clamp': expandedEventId !== event.id }">
+                {{ event.description }}
+              </p>
+              <button
+                @click="toggleExpand(event.id)"
+                class="text-purple-500 hover:underline text-xs font-semibold"
+              >
+                {{ expandedEventId === event.id ? 'Weniger anzeigen' : 'Mehr anzeigen' }}
+              </button>
+            </div>
+
+            <span class="text-gray-500 italic block mt-2"
+              >👗 {{ event.dress_code || 'Casual' }}</span
+            >
           </div>
         </div>
 
@@ -108,6 +125,27 @@ Optimierungen** ```css
 body {
   background-color: #f7f8fc;
 }
+
+/* ✨ Beschreibung optimieren */
+.description-box {
+  background: #f8f9fc;
+  padding: 8px;
+  border-radius: 8px;
+  margin-top: 8px;
+  font-size: 14px;
+  line-height: 1.4;
+  max-width: 250px;
+}
+
+/* 📝 Zeilenbegrenzung für Vorschau */
+.line-clamp {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-height: 40px;
+}
 </style>
 
 <script>
@@ -120,6 +158,7 @@ export default {
   data() {
     return {
       events: [],
+      expandedEventId: null, // Speichert die ID des ausgeklappten Events
       fallbackImages: {
         elegant: '/fallback/elegant.jpg',
         neverland: '/fallback/neverland.jpg',
@@ -136,12 +175,12 @@ export default {
   },
   computed: {
     sortedEvents() {
-      const now = DateTime.now().setZone('Europe/Berlin').startOf('day') // Aktuelles Datum ohne Zeit
+      const now = DateTime.now().setZone('Europe/Berlin').startOf('day')
 
       return [...this.events]
         .filter((event) => {
           const eventDate = DateTime.fromISO(event.date, { zone: 'Europe/Berlin' }).startOf('day')
-          return eventDate >= now // Nur heutige & zukünftige Events behalten
+          return eventDate >= now
         })
         .sort((a, b) => {
           const dateTimeA = DateTime.fromISO(`${a.date}T${a.startTime}`, { zone: 'Europe/Berlin' })
@@ -150,7 +189,6 @@ export default {
         })
     },
   },
-
   async mounted() {
     await this.loadEvents()
   },
@@ -188,6 +226,13 @@ export default {
         year: 'numeric',
       })
     },
+    truncateText(text, maxLength) {
+      return text.length > maxLength ? text.substring(0, maxLength) + '...' : text
+    },
+    toggleExpand(eventId) {
+      this.expandedEventId = this.expandedEventId === eventId ? null : eventId
+    },
+
     downloadICS(event) {
       const icsFile = generateICS(event)
       if (icsFile) {

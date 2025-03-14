@@ -34,14 +34,73 @@ const fallbackImages = {
   default: '/fallback/default.jpg',
 }
 
+const fallbackDescriptions = {
+  neverland:
+    'Think Peter Pan vibes! Dress as a pirate, fairy, or even a lost boy. A mix of adventure and whimsy.',
+  nineties:
+    'Baggy jeans, crop tops, and bucket hats. Bring back the 90s with bold colors and retro sneakers.',
+  elegant:
+    'Classic suits, cocktail dresses, and sophisticated accessories. A night of glamour awaits.',
+  superhero: 'Capes, masks, and heroic outfits. Dress like your favorite comic book legend.',
+  anime: 'Cosplay as your favorite anime character or wear Japanese street fashion styles.',
+  futuristic: 'Metallic tones, LED glasses, and cyberpunk aesthetics. The future is now!',
+  beach: 'Floral shirts, bikinis, sandals, and sunglasses. Perfect for a tropical party.',
+  black: 'Monochrome outfits in stylish black and white tones. Minimalist and chic.',
+  default: 'Express yourself with a creative outfit matching the theme!',
+}
+
+export const getFallbackDescription = (dressCode) => {
+  if (!dressCode) return fallbackDescriptions.default
+  const normalizedDressCode = dressCode.toLowerCase().trim()
+
+  return (
+    Object.entries(fallbackDescriptions).find(([key]) => normalizedDressCode.includes(key))?.[1] ||
+    fallbackDescriptions.default
+  )
+}
+
+export const generateOutfitDescription = async (dressCode) => {
+  if (!dressCode) return getFallbackDescription('default')
+  if (!USE_AI) return getFallbackDescription(dressCode)
+
+  try {
+    const response = await axios.post(
+      'https://api.openai.com/v1/chat/completions',
+      {
+        model: 'gpt-4o-mini',
+        messages: [
+          {
+            role: 'user',
+            content: `Give a concise and stylish outfit recommendation suitable for a date or party under the theme: "${dressCode}". 
+            Keep it under 20 words and unisex.`,
+          },
+        ],
+        temperature: 1.1,
+        max_tokens: 50,
+      },
+      {
+        headers: { Authorization: `Bearer ${OPENAI_API_KEY}`, 'Content-Type': 'application/json' },
+      },
+    )
+
+    return (
+      response.data?.choices?.[0]?.message?.content?.trim() || getFallbackDescription(dressCode)
+    )
+  } catch (error) {
+    console.error('❌ AI error fetching outfit description:', error)
+    return getFallbackDescription(dressCode)
+  }
+}
+
 // 🔹 Gibt einen zufälligen Dresscode zurück
 const getFallbackDressCode = () =>
   fallbackDressCodes[Math.floor(Math.random() * fallbackDressCodes.length)]
 
 // 🔹 Passendes Fallback-Bild zum Dresscode zurückgeben
-const getFallbackImage = (dressCode) => {
+export const getFallbackImage = (dressCode) => {
   if (!dressCode) return fallbackImages.default
   const normalizedDressCode = dressCode.toLowerCase().trim()
+
   return (
     Object.entries(fallbackImages).find(([key]) => normalizedDressCode.includes(key))?.[1] ||
     fallbackImages.default
@@ -72,8 +131,8 @@ export const getDressCodeSuggestion = async () => {
               'Give me a creative dress code for a date, party or dance event. Only return the dress code title without explanation.',
           },
         ],
-        temperature: 1.7,
-        max_tokens: 50,
+        temperature: 1.5,
+        max_tokens: 30,
       },
       {
         headers: {

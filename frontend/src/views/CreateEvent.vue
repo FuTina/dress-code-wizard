@@ -50,6 +50,15 @@
           alt="Event Image"
           class="w-full h-48 object-cover rounded-lg shadow-md transition hover:scale-105"
         />
+
+        <!-- ✨ Editierbare Beschreibung -->
+        <textarea
+          v-model="outfitDescription"
+          class="input-field mt-2 w-full resize-none"
+          rows="3"
+          placeholder="Describe the outfit suggestion..."
+        ></textarea>
+
         <button
           v-if="isSupabaseImage(previewImage)"
           @click="openImageInNewTab(previewImage)"
@@ -66,7 +75,14 @@
 
 <script>
 import { createEvent } from '@/api/eventService'
-import { getDressCodeSuggestion, generateEventImage, USE_AI } from '@/api/aiService'
+import {
+  getDressCodeSuggestion,
+  generateEventImage,
+  generateOutfitDescription,
+  getFallbackImage,
+  getFallbackDescription,
+  USE_AI,
+} from '@/api/aiService'
 import { uploadImage } from '@/api/storageService'
 
 export default {
@@ -80,9 +96,10 @@ export default {
         dress_code: '',
       },
       imageFile: null,
-      previewImage: null,
+      previewImage: getFallbackImage('default'),
       isGenerating: false,
       USE_AI,
+      outfitDescription: '',
     }
   },
   methods: {
@@ -104,6 +121,7 @@ export default {
     async generateDressCode() {
       this.event.dress_code = await getDressCodeSuggestion()
     },
+
     async generateEventImage() {
       if (!this.event.dress_code) {
         alert('❌ Please enter a dress code first!')
@@ -113,19 +131,41 @@ export default {
       this.isGenerating = true
 
       try {
-        const { imageUrl, error } = await generateEventImage(this.event.dress_code, (loading) => {
-          this.isGenerating = loading
-        })
+        if (USE_AI) {
+          const { imageUrl, error } = await generateEventImage(this.event.dress_code, (loading) => {
+            this.isGenerating = loading
+          })
 
-        if (error || !imageUrl) {
-          console.warn('⚠️ AI Image generation failed. Using fallback image.')
-          this.previewImage = this.getFallbackImage(this.event.dress_code)
+          this.previewImage = imageUrl || getFallbackImage(this.event.dress_code)
+          this.outfitDescription = await generateOutfitDescription(this.event.dress_code)
         } else {
-          this.previewImage = imageUrl
+          console.warn('⚠️ AI disabled - using fallback')
+
+          // **Sicherstellen, dass Fallback-Bild und -Text korrekt gesetzt werden**
+          if (!this.previewImage || this.previewImage === getFallbackImage('default')) {
+            this.previewImage = getFallbackImage(
+              this.event.dress_code?.trim().toLowerCase() || 'default',
+            )
+            console.log('🖼️ Fallback Image:', this.previewImage)
+          }
+
+          if (!this.outfitDescription) {
+            this.outfitDescription = getFallbackDescription(this.event.dress_code || 'default')
+          }
         }
       } catch (error) {
         console.error('❌ AI Image Generation Error:', error)
-        this.previewImage = this.getFallbackImage(this.event.dress_code)
+
+        if (!this.previewImage || this.previewImage === getFallbackImage('default')) {
+          this.previewImage = getFallbackImage(
+            this.event.dress_code?.trim().toLowerCase() || 'default',
+          )
+          console.log('🖼️ Fallback Image (Error Handling):', this.previewImage)
+        }
+
+        if (!this.outfitDescription) {
+          this.outfitDescription = getFallbackDescription(this.event.dress_code || 'default')
+        }
       } finally {
         this.isGenerating = false
       }
@@ -158,6 +198,7 @@ export default {
         startTime: `${this.event.startTime}:00`,
         endTime: `${this.event.endTime}:00`,
         image_url: imageUrl,
+        description: this.outfitDescription.trim(), // Speichert die bearbeitete Beschreibung
       })
       alert('✅ Event saved!')
       this.$router.push('/dashboard')
@@ -167,6 +208,10 @@ export default {
     },
     openImageInNewTab(url) {
       window.open(url, '_blank')
+    },
+    async generateOutfitDescription() {
+      if (!this.event.dress_code) return
+      this.outfitDescription = await generateOutfitDescription(this.event.dress_code)
     },
   },
 }

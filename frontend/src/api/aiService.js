@@ -53,6 +53,8 @@ export const getFallbackDescription = (dressCode) => {
   if (!dressCode) return fallbackDescriptions.default
   const normalizedDressCode = dressCode.toLowerCase().trim()
 
+  console.log('🔍 Checking Fallback Description for:', normalizedDressCode)
+
   return (
     Object.entries(fallbackDescriptions).find(([key]) => normalizedDressCode.includes(key))?.[1] ||
     fallbackDescriptions.default
@@ -100,6 +102,8 @@ const getFallbackDressCode = () =>
 export const getFallbackImage = (dressCode) => {
   if (!dressCode) return fallbackImages.default
   const normalizedDressCode = dressCode.toLowerCase().trim()
+
+  console.log('🔍 Checking Fallback Image for:', normalizedDressCode)
 
   return (
     Object.entries(fallbackImages).find(([key]) => normalizedDressCode.includes(key))?.[1] ||

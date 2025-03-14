@@ -99,7 +99,7 @@ export default {
       previewImage: getFallbackImage('default'),
       isGenerating: false,
       USE_AI,
-      outfitDescription: '',
+      outfitDescription: getFallbackDescription('default'), // Standardbeschreibung setzen
     }
   },
   methods: {
@@ -136,47 +136,44 @@ export default {
             this.isGenerating = loading
           })
 
+          // Setze das AI-Bild oder ein Fallback-Bild
           this.previewImage = imageUrl || getFallbackImage(this.event.dress_code)
           this.outfitDescription = await generateOutfitDescription(this.event.dress_code)
         } else {
           console.warn('⚠️ AI disabled - using fallback')
 
-          // **Sicherstellen, dass Fallback-Bild und -Text korrekt gesetzt werden**
-          if (!this.previewImage || this.previewImage === getFallbackImage('default')) {
-            this.previewImage = getFallbackImage(
-              this.event.dress_code?.trim().toLowerCase() || 'default',
-            )
-            console.log('🖼️ Fallback Image:', this.previewImage)
-          }
-
-          if (!this.outfitDescription) {
-            this.outfitDescription = getFallbackDescription(this.event.dress_code || 'default')
-          }
+          // **Fallback-Bild und Beschreibung direkt setzen**
+          this.setFallbackImageAndDescription()
         }
       } catch (error) {
         console.error('❌ AI Image Generation Error:', error)
 
-        if (!this.previewImage || this.previewImage === getFallbackImage('default')) {
-          this.previewImage = getFallbackImage(
-            this.event.dress_code?.trim().toLowerCase() || 'default',
-          )
-          console.log('🖼️ Fallback Image (Error Handling):', this.previewImage)
-        }
-
-        if (!this.outfitDescription) {
-          this.outfitDescription = getFallbackDescription(this.event.dress_code || 'default')
-        }
+        // **Fehlermodus - Setze Fallback-Bild und -Beschreibung**
+        this.setFallbackImageAndDescription()
       } finally {
         this.isGenerating = false
       }
     },
+
+    /** 🔹 Setzt Fallback-Bild und Beschreibung, wenn kein AI-Image generiert wird */
+    setFallbackImageAndDescription() {
+      this.previewImage = getFallbackImage(this.event.dress_code?.trim().toLowerCase() || 'default')
+      this.outfitDescription = getFallbackDescription(this.event.dress_code || 'default')
+
+      console.log('🖼️ Fallback Image:', this.previewImage)
+      console.log('📄 Fallback Description:', this.outfitDescription)
+    },
+
     triggerFileInput() {
       this.$refs.fileInput.click()
     },
     handleFileUpload(event) {
       this.imageFile = event.target.files[0]
-      this.previewImage = URL.createObjectURL(this.imageFile)
+      this.previewImage =
+        URL.createObjectURL(this.imageFile) || getFallbackImage(this.event.dress_code)
+      console.log('📸 Uploaded Image Preview:', this.previewImage)
     },
+
     async createEvent() {
       if (
         !this.event.name ||

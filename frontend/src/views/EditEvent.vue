@@ -27,12 +27,8 @@
       </div>
 
       <!-- 📝 Bearbeitbare Beschreibung -->
-      <textarea
-        v-model="event.description"
-        class="input-field mt-2 w-full resize-none"
-        rows="3"
-        placeholder="Describe the outfit suggestion..."
-      ></textarea>
+      <textarea v-model="event.description" class="input-field mt-2 w-full resize-none" rows="3"
+        placeholder="Describe the outfit suggestion..."></textarea>
 
       <!-- 🔹 Moderner Datei-Upload -->
       <label class="block text-gray-700">Upload New Image:</label>
@@ -47,17 +43,15 @@
       <!-- 🖼 Current Event Image Preview -->
       <div v-if="previewImage || event.image_url" class="mt-4 text-center">
         <p class="text-gray-500 text-sm">Image Preview:</p>
-        <img
-          :src="previewImage || event.image_url"
-          alt="Event Image"
-          class="w-full h-48 object-cover rounded-lg shadow-md transition hover:scale-105"
-        />
+        <img :src="previewImage || event.image_url" alt="Event Image"
+          class="w-full h-48 object-cover rounded-lg shadow-md transition hover:scale-105" />
         <button v-if="event.image_url" @click="deleteCurrentImage" class="delete-image-button">
           ❌ Delete Image
         </button>
       </div>
 
       <button @click="updateEvent" class="submit-button w-full">✅ Save Changes</button>
+      <p v-if="errorMessage" class="text-red-500 font-semibold text-sm mt-2 text-center">{{ errorMessage }}</p>
     </div>
   </div>
 </template>
@@ -82,6 +76,7 @@ export default {
       },
       imageFile: null,
       previewImage: null,
+      errorMessage: '', // <-- Hinzufügen
     }
   },
   async mounted() {
@@ -106,6 +101,20 @@ export default {
     this.event.endTime = data.endTime.substring(0, 5)
   },
   methods: {
+    validateDates() {
+      const start = new Date(`${this.event.startdate}T${this.event.startTime}`)
+      const end = new Date(`${this.event.enddate}T${this.event.endTime}`)
+
+      if (end < start) {
+        this.errorMessage = '❌ Enddatum und -zeit dürfen nicht vor dem Start liegen.'
+        return false
+      } else {
+        this.errorMessage = ''
+        return true
+      }
+    },
+    // ... bestehende Methoden ...
+
     triggerFileInput() {
       this.$refs.fileInput.click()
     },
@@ -122,6 +131,8 @@ export default {
       alert('✅ Image deleted!')
     },
     async updateEvent() {
+      if (!this.validateDates()) return // <-- Validierung prüfen
+
       let imageUrl = this.event.image_url
       if (this.imageFile) {
         const { url, error } = await uploadImage(this.imageFile, 'event-images')
@@ -149,7 +160,7 @@ export default {
       alert('✅ Event updated!')
       this.$router.push('/dashboard')
     },
-  },
+  }
 }
 </script>
 

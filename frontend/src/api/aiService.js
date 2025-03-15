@@ -73,8 +73,21 @@ export const generateOutfitDescription = async (dressCode) => {
         messages: [
           {
             role: 'user',
-            content: `Give a concise and stylish or creative outfit recommendation suitable for a date or party under the theme: "${dressCode}". 
-            Keep it under 20 words and unisex.`,
+            content: `Provide a concise, stylish, realistic and purchasable outfit recommendation for the theme "${dressCode}". 
+            List specific garments, accessories, and footwear that one can buy today. Ensure gender-adapted options where applicable. 
+            Keep it under 20 words and return only the outfit description without mentioning the dress code.
+            
+            Examples:
+            - Women: Long satin evening gown, silver high heels, pearl earrings, matching clutch. 
+            - Men: Tailored black tuxedo, silk bow tie, polished dress shoes, silver cufflinks. 
+            - Women: Cozy pink unicorn onesie, fluffy slippers, plush sleep mask. 
+            - Men: Green dinosaur pajama set, warm socks, matching hooded cap. 
+            - Women: Neon crop top, high-waisted joggers, LED sneakers, mirrored sunglasses. 
+            - Men: Reflective bomber jacket, black joggers, glow-in-the-dark bracelets. 
+            - Women: Vintage polka-dot dress, cat-eye sunglasses, pearl earrings, Mary Jane shoes. 
+            - Men: Retro striped suit, fedora hat, Oxford shoes, pocket watch. 
+            - Women: Metallic silver bodysuit, LED sunglasses, neon leggings, platform boots. 
+            - Men: Black tech-jacket with LED accents, slim-fit joggers, futuristic sneakers.`,
           },
         ],
         temperature: 1.1,
@@ -85,9 +98,10 @@ export const generateOutfitDescription = async (dressCode) => {
       },
     )
 
-    return (
-      response.data?.choices?.[0]?.message?.content?.trim() || getFallbackDescription(dressCode)
-    )
+    const outfitDescription = response.data?.choices?.[0]?.message?.content
+      ?.trim()
+      .replace(/["']/g, '')
+    return outfitDescription && USE_AI ? outfitDescription : getFallbackDescription(dressCode)
   } catch (error) {
     console.error('❌ AI error fetching outfit description:', error)
     return getFallbackDescription(dressCode)
@@ -132,11 +146,11 @@ export const getDressCodeSuggestion = async () => {
           {
             role: 'user',
             content:
-              'Give me a creative dress code for a date, party or dance event. Only return the dress code title without explanation.',
+              'Give me a unique, creative, and fun dress code idea for a date, party, or dance event. Make it exciting, unexpected, and humorous when possible. Only return the dress code title without explanation.',
           },
         ],
         temperature: 1.5,
-        max_tokens: 30,
+        max_tokens: 20,
       },
       {
         headers: {
@@ -147,7 +161,7 @@ export const getDressCodeSuggestion = async () => {
     )
 
     const suggestion = response.data?.choices?.[0]?.message?.content?.trim().replace(/["']/g, '')
-    return suggestion || getFallbackDressCode()
+    return suggestion && USE_AI ? suggestion : getFallbackDressCode()
   } catch (error) {
     console.error('❌ OpenAI error:', error.response?.data || error.message)
     return getFallbackDressCode()
@@ -165,8 +179,11 @@ export const generateEventImage = async (dressCode, setLoading) => {
   }
 
   if (!USE_AI) {
-    console.warn('⚠️ AI deaktiviert - verwende Fallback-Bild.')
-    return { imageUrl: getFallbackImage(dressCode), error: 'AI deaktiviert' }
+    console.warn('⚠️ AI deaktiviert - Fallback-Bild wird verwendet.')
+    return {
+      imageUrl: fallbackImages[dressCode.toLowerCase()] || fallbackImages.default,
+      error: 'AI deaktiviert',
+    }
   }
 
   try {
@@ -175,9 +192,21 @@ export const generateEventImage = async (dressCode, setLoading) => {
 
     const cleanDressCode = dressCode.replace(/["']/g, '').trim()
 
-    const prompt = `Generate a high-quality image of **one man and one woman** wearing stylish outfits that fit the theme "${cleanDressCode}". 
-    The man and woman should be posing together in a fashionable setting, wearing elegant attire or trendy outfits suitable for the theme. 
-    Ensure the image features only these two individuals, with a clear focus on their clothing style.`
+    const prompt = `Generate a high-resolution, full-body image of one man and one woman wearing purchasable outfits or costumes for the dress code "${cleanDressCode}". 
+
+    The outfits should be based on real available clothing items. Focus on realistic fabrics, textures, and accessories. 
+    Avoid surreal elements, exaggerated designs, or costumes that do not exist in real life. The background should be a neutral studio setting or a relevant event backdrop.
+    Examples:  
+- Elegant Night: The woman wears a floor-length satin evening gown, silver stiletto heels, a matching clutch, and pearl earrings. The man wears a tailored black tuxedo, a white dress shirt, a silk bow tie, polished leather Oxford shoes, and a silver watch.  
+- Retro Disco Fever: The woman wears high-waisted sequined bell-bottom pants, a fitted metallic halter top, platform heels, and oversized round sunglasses. The man wears a white slim-fit leisure suit, a patterned silk shirt, a gold chain necklace, and patent leather dress shoes.  
+- Glitter Overload: The woman wears a knee-length silver sequined dress, high-heeled sandals, chandelier earrings, and a metallic clutch. The man wears a navy blue sequined blazer, fitted black dress pants, a black turtleneck, and polished dress shoes.  
+- Animal Pyjama Party: The woman wears a plush pink unicorn onesie with a hood and ears, fluffy slippers, and a satin sleep mask. The man wears a cozy green dinosaur onesie with a hood and tail, warm socks, and matching plush slippers.  
+- Futuristic Cyberpunk: The woman wears a silver metallic cropped jacket, a black bodysuit, neon-accented leggings, LED sunglasses, and platform sneakers. The man wears a black tech-inspired bomber jacket with LED details, slim-fit joggers, a utility vest, and high-top sneakers with glowing soles.  
+- Neon Party: The woman wears a neon pink crop top, high-waisted joggers, chunky sneakers, glow-in-the-dark hoop earrings, and an LED bracelet. The man wears a fluorescent green hoodie, reflective cargo pants, neon sneakers, and LED glasses.  
+- Business Casual Chic: The woman wears a tailored beige blazer, a white silk blouse, straight-leg black trousers, nude pumps, and a structured leather handbag. The man wears a navy-blue blazer, a fitted white dress shirt, tailored khaki chinos, and brown leather loafers.  
+- Black and White: The woman wears a knee-length black fitted dress with white trim, white ankle boots, a silver necklace, and a structured clutch. The man wears a white slim-fit suit, a black dress shirt, a matching belt, black leather dress shoes, and a silver wristwatch.  
+- Neverland Adventure: The woman wears a green fairy dress with layered chiffon, detachable wings, ballet flats, and a tiara. The man wears a pirate costume with a ruffled white shirt, black slim-fit trousers, a leather belt with a gold buckle, knee-high boots, and a tricorn hat.  
+- Summer Beach Party: The woman wears a white linen maxi dress, flat leather sandals, a wide-brim straw hat, and oversized sunglasses. The man wears a short-sleeve Hawaiian shirt, beige linen shorts, flip-flops, and aviator sunglasses.`
 
     // 🔹 Timeout auf 45 Sekunden erhöhen
     const response = await Promise.race([
@@ -202,7 +231,20 @@ export const generateEventImage = async (dressCode, setLoading) => {
     ])
 
     const imageUrl = response.data?.data?.[0]?.url
-    if (!imageUrl) throw new Error('No image URL returned from OpenAI')
+    if (!imageUrl && USE_AI) {
+      console.error(
+        '❌ AI image generation failed but AI is active. Returning an error instead of fallback.',
+      )
+      return { imageUrl: null, error: 'AI image generation failed' }
+    }
+
+    if (!imageUrl && !USE_AI) {
+      console.warn('⚠️ AI is disabled - using fallback image.')
+      return {
+        imageUrl: fallbackImages[dressCode.toLowerCase()] || fallbackImages.default,
+        error: 'Fallback used',
+      }
+    }
 
     console.log(`✅ AI image generated successfully: ${imageUrl}`)
 
@@ -249,5 +291,24 @@ const saveGeneratedImage = async (imageUrl, dressCode) => {
   } catch (error) {
     console.error('❌ Error saving AI-generated image:', error)
     return getFallbackImage(dressCode)
+  }
+}
+
+const fetchShoppingResults = async (query) => {
+  const apiKey = import.meta.env.VITE_GOOGLE_API_KEY
+  const searchUrl = `https://www.googleapis.com/customsearch/v1?q=${encodeURIComponent(query)}&key=${apiKey}&cx=YOUR_SEARCH_ENGINE_ID`
+
+  try {
+    const response = await axios.get(searchUrl)
+    return (
+      response.data.items?.map((item) => ({
+        title: item.title,
+        link: item.link,
+        image: item.pagemap?.cse_image?.[0]?.src,
+      })) || []
+    )
+  } catch (error) {
+    console.error('❌ Error fetching shopping results:', error)
+    return []
   }
 }

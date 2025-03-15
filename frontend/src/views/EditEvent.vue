@@ -170,39 +170,38 @@ export default {
     },
 
     async generateEventImage() {
-  if (!this.event.dress_code) {
-    alert('❌ Please enter a dress code first!')
-    return
-  }
+      if (!this.event.dress_code) {
+        alert('❌ Please enter a dress code first!')
+        return
+      }
 
-  this.isGenerating = true
+      this.isGenerating = true
 
-  try {
-    const { imageUrl } = await generateEventImage(this.event.dress_code, (loading) => {
-      this.isGenerating = loading
-    })
+      try {
+        const { imageUrl } = await generateEventImage(this.event.dress_code, (loading) => {
+          this.isGenerating = loading
+        })
 
-    // Hole Bild und lade es direkt hoch
-    const imageBlob = await fetch(imageUrl).then((res) => res.blob())
-    const { url: uploadedImageUrl } = await uploadImage(imageBlob, 'event-images')
+        // Hole Bild und lade es direkt hoch
+        const imageBlob = await fetch(imageUrl).then((res) => res.blob())
+        const { url: uploadedImageUrl } = await uploadImage(imageBlob, 'event-images')
 
-    // Setze das Bild korrekt
-    this.previewImage = uploadedImageUrl
-    this.event.image_url = uploadedImageUrl
+        // Setze das Bild korrekt
+        this.previewImage = uploadedImageUrl
+        this.event.image_url = uploadedImageUrl
 
-    // Generiere Beschreibung
-    this.event.description = await generateOutfitDescription(this.event.dress_code)
+        // Generiere Beschreibung
+        this.event.description = await generateOutfitDescription(this.event.dress_code)
 
-    // Setze imageFile zurück, um Konflikte zu vermeiden
-    this.imageFile = null
-
-  } catch (error) {
-    console.error('❌ AI Image Generation Error:', error)
-    this.setFallbackImageAndDescription()
-  } finally {
-    this.isGenerating = false
-  }
-},
+        // Setze imageFile zurück, um Konflikte zu vermeiden
+        this.imageFile = null
+      } catch (error) {
+        console.error('❌ AI Image Generation Error:', error)
+        this.setFallbackImageAndDescription()
+      } finally {
+        this.isGenerating = false
+      }
+    },
 
     setFallbackImageAndDescription() {
       this.previewImage =
@@ -271,8 +270,6 @@ export default {
   },
 }
 </script>
-
-
 
 <style>
 .input-field {
@@ -346,5 +343,4 @@ export default {
 .delete-button:hover {
   background-color: #a71414;
 }
-
 </style>

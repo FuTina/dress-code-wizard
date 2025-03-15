@@ -3,16 +3,16 @@ import { DateTime } from 'luxon'
 
 // 🔹 Fallback-Bilder aus /public/fallback/
 const dressCodeImages = {
-  elegant: '/fallback/elegant.jpg',
-  neverland: '/fallback/neverland.jpg',
-  anime: '/fallback/anime.jpg',
-  hero: '/fallback/hero.jpg',
-  pyjama: '/fallback/pyjama.jpg',
-  beach: '/fallback/beach.jpg',
-  black: '/fallback/black.jpg',
-  futuristic: '/fallback/futuristic.jpg',
-  nineties: '/fallback/nineties.jpg',
-  default: '/fallback/default.jpg',
+  elegant: '/fallback/elegant.png',
+  neverland: '/fallback/neverland.png',
+  anime: '/fallback/anime.png',
+  hero: '/fallback/hero.png',
+  pyjama: '/fallback/pyjama.png',
+  beach: '/fallback/beach.png',
+  black: '/fallback/black.png',
+  futuristic: '/fallback/futuristic.png',
+  nineties: '/fallback/nineties.png',
+  default: '/fallback/default0.jpg',
 }
 
 // 🔹 Benutzer abrufen
@@ -134,7 +134,7 @@ export const uploadEventImage = async (file) => {
 
   if (!publicUrl.startsWith('http')) {
     console.warn('⚠️ Konnte keine öffentliche URL abrufen - Fallback wird verwendet')
-    return { url: '/fallback/default.jpg' }
+    return { url: '/fallback/default0.jpg' }
   }
 
   console.log('✅ Bild erfolgreich hochgeladen:', publicUrl)

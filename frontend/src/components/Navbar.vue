@@ -30,7 +30,15 @@
           @click="toggleDropdown"
           class="bg-gray-800 px-4 py-2 rounded hover:bg-gray-700 transition flex items-center gap-2"
         >
-          <ProfileIcon class="w-8 h-8 text-white" />
+          <!-- Profilbild oder Fallback-Icon -->
+          <img
+            v-if="user.user_metadata?.image_url"
+            :src="user.user_metadata.image_url"
+            alt="Profile Picture"
+            class="w-8 h-8 rounded-full border border-gray-500 object-cover shadow"
+          />
+          <ProfileIcon v-else class="w-8 h-8 text-white" />
+
           <span class="hidden sm:inline">{{ user.email.split('@')[0] }}</span>
           <span class="transition-transform transform" :class="{ 'rotate-180': dropdownOpen }"
             >▼</span
@@ -124,12 +132,17 @@ export default {
   methods: {
     async getUser() {
       const { data } = await supabase.auth.getUser()
-      this.user = data.user
+      if (data.user) {
+        this.user = {
+          ...data.user,
+          user_metadata: data.user.user_metadata || {}, // Sicherstellen, dass user_metadata existiert
+        }
+      }
     },
     async logout() {
       await supabase.auth.signOut()
       this.user = null
-      this.$router.push('/')
+      this.$router.push('/login')
     },
     toggleMobileMenu() {
       this.mobileMenuOpen = !this.mobileMenuOpen

@@ -70,7 +70,7 @@ export const generateOutfitDescription = async (dressCode) => {
     const response = await axios.post(
       'https://api.openai.com/v1/chat/completions',
       {
-        model: 'gpt-4o-mini',
+        model: 'gpt-3.5-turbo',
         messages: [
           {
             role: 'user',
@@ -103,7 +103,7 @@ export const generateOutfitDescription = async (dressCode) => {
             Use similar styling to return a high-quality outfit description.`,
           },
         ],
-        temperature: 1.1,
+        temperature: 0.7,
         max_tokens: 50,
       },
       {
@@ -154,16 +154,16 @@ export const getDressCodeSuggestion = async () => {
     const response = await axios.post(
       'https://api.openai.com/v1/chat/completions',
       {
-        model: 'gpt-4o-mini',
+        model: 'gpt-3.5-turbo',
         messages: [
           {
             role: 'user',
             content:
-              'Give me a unique, creative, and fun dress code idea for a date, party, or dance event. Make it exciting, unexpected, and humorous when possible. Only return the dress code title without explanation.',
+              'Suggest a short, stylish, and creative dress code idea for a date, party, or dance event. Keep it **between 1-5 words** and make it exciting, unexpected, and humorous when possible. Ensure it is still understandable and practical to wear. Avoid abstract or surreal concepts. Use fun, themed, and classy ideas. Examples: "Tropical Exotic", "Neon Jungle", "British Elegance", "French", "Red Elegance", "Neverland", "Disco Cowboys", "Animal Pyjama", "Black & Gold", "Great Gatsby Remix", "Glitter & Denim". Only return the dress code title without explanation.',
           },
         ],
-        temperature: 1.5,
-        max_tokens: 20,
+        temperature: 1.1,
+        max_tokens: 10,
       },
       {
         headers: {
@@ -205,7 +205,6 @@ export const generateEventImage = async (dressCode, setLoading) => {
 
     const cleanDressCode = dressCode.replace(/["']/g, '').trim()
 
-
     //Generate an image of exactly one man and one woman standing side by side, dressed in theme-appropriate outfits
     const prompt = `Generate a high-resolution, realistic, full-body image of exactly one man and one woman standing side by side, wearing purchasable outfits or costumes for the dress code "${cleanDressCode}".
     The outfits should be based on real, available clothing items. Focus on realistic fabrics, textures, and accessories.  
@@ -235,7 +234,7 @@ export const generateEventImage = async (dressCode, setLoading) => {
     - Hawaiian Luau: The woman wears a floral wrap dress, flat sandals, a flower lei, and a tropical headpiece.  
       The man wears a red floral Hawaiian shirt, beige cargo shorts, flip-flops, and a straw fedora.  
     Follow this structure to generate a stylish, realistic, and purchasable outfit recommendation for the given theme.`
-    
+
     // 🔹 Timeout auf 45 Sekunden erhöhen
     const response = await Promise.race([
       axios.post(

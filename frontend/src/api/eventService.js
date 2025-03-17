@@ -1,27 +1,28 @@
 import { supabase } from '@/lib/supabase'
 import { DateTime } from 'luxon'
+import { getFallbackImage, getFallbackDescription } from '@/api/aiService'
 
-// 🔹 Fallback-Bilder aus /public/fallback/
-const dressCodeImages = {
-  elegant: '/fallback/elegant.png',
-  neverland: '/fallback/neverland.png',
-  anime: '/fallback/anime.png',
-  hero: '/fallback/hero.png',
-  pyjama: '/fallback/pyjama.png',
-  beach: '/fallback/beach.png',
-  black: '/fallback/black.png',
-  futuristic: '/fallback/futuristic.png',
-  nineties: '/fallback/nineties.png',
-  default: '/fallback/default0.jpg',
-}
+// Fallback images from /public/fallback/
+// const dressCodeImages = {
+//   elegant: '/fallback/elegant.png',
+//   neverland: '/fallback/neverland.png',
+//   anime: '/fallback/anime.png',
+//   hero: '/fallback/hero.png',
+//   pyjama: '/fallback/pyjama.png',
+//   beach: '/fallback/beach.png',
+//   black: '/fallback/black.png',
+//   futuristic: '/fallback/futuristic.png',
+//   nineties: '/fallback/nineties.png',
+//   default: '/fallback/default0.jpg',
+// }
 
-// 🔹 Benutzer abrufen
+// Get current user
 const getCurrentUser = async () => {
   const { data } = await supabase.auth.getUser()
   return data?.user || null
 }
 
-// 🔹 Event erstellen
+// Create event
 export const createEvent = async (eventData, imageFile) => {
   const user = await getCurrentUser()
   if (!user) return { error: 'Not authenticated' }
@@ -34,34 +35,49 @@ export const createEvent = async (eventData, imageFile) => {
     imageUrl = uploadResult.url
   }
 
-  // Falls kein Bild hochgeladen wurde, setze ein Fallback-Bild
-  if (!imageUrl.startsWith('http')) {
+  // Set a fallback image if no image was uploaded
+  if (!imageUrl || !imageUrl.startsWith('http')) {
+    console.warn('⚠️ Kein gültiges Eventbild - verwende Fallback')
     imageUrl = getFallbackImage(eventData.dress_code)
   }
 
-  console.log('📸 Finale Bild-URL:', imageUrl)
+  console.log('Final image URL:', imageUrl)
+
+  // 🔹 Setze ebenfalls eine Fallback-Beschreibung, falls keine existiert
+  const eventDescription =
+    eventData.description?.trim() || getFallbackDescription(eventData.dress_code)
+
+  console.log('Event description:', eventDescription)
+  console.log('🖼️ Final event image:', imageUrl)
 
   const { data, error } = await supabase
     .from('events')
-    .insert([{ ...eventData, user_id: user.id, image_url: imageUrl }])
+    .insert([
+      {
+        ...eventData,
+        user_id: user.id,
+        image_url: imageUrl,
+        description: eventDescription,
+      },
+    ])
     .select()
 
   if (error) {
-    console.error('❌ Fehler beim Speichern des Events:', error.message)
+    console.error('Error saving event:', error.message)
     return { error }
   }
 
-  console.log('✅ Event erfolgreich gespeichert mit Bild:', data)
+  console.log('Event saved successfully with image:', data)
 
   return { data, error }
 }
 
-// 🔹 Events abrufen mit Fallback-Bildern & Filterung
+// Get events with fallback images and filtering
 export const getEvents = async () => {
   const now = DateTime.now().setZone('Europe/Berlin').startOf('day').toISODate()
-  console.log('🗑️ Lösche abgelaufene Events vor:', now)
+  console.log('Delete expired events before:', now)
 
-  // Lösche Events, deren `enddate` bereits abgelaufen ist
+  // Delete events whose end date has already passed
   await supabase.from('events').delete().lt('enddate', now)
 
   const { data, error } = await supabase
@@ -73,7 +89,7 @@ export const getEvents = async () => {
     .order('startTime', { ascending: true })
 
   if (error) {
-    console.error('❌ Fehler beim Abrufen der Events:', error.message)
+    console.error('Error retrieving events:', error.message)
     return { data: [], error }
   }
 
@@ -86,7 +102,7 @@ export const getEvents = async () => {
   }
 }
 
-// 🔹 Event aktualisieren
+// Update event
 export const updateEvent = async (eventId, updatedData, newImageFile) => {
   let imageUrl = updatedData.image_url
 
@@ -100,7 +116,7 @@ export const updateEvent = async (eventId, updatedData, newImageFile) => {
     imageUrl = window.location.origin + imageUrl
   }
 
-  console.log('🔄 Aktualisiere Event mit Bild:', imageUrl)
+  console.log('Update event with image:', imageUrl)
 
   const { data, error } = await supabase
     .from('events')
@@ -108,67 +124,67 @@ export const updateEvent = async (eventId, updatedData, newImageFile) => {
     .eq('id', eventId)
     .select()
 
-  if (error) console.error('❌ Fehler beim Aktualisieren des Events:', error.message)
+  if (error) console.error('Error updating event:', error.message)
 
   return { data, error }
 }
 
-// 🔹 Bild-Upload zu Supabase Storage
+// Upload image to Supabase storage
 export const uploadEventImage = async (file) => {
   if (!file) return { error: 'No file selected' }
 
   const fileName = `${Date.now()}-${file.name}`
-  console.log('📤 Hochladen zu Supabase:', fileName)
+  console.log('Uploading to Supabase:', fileName)
 
   const { data, error } = await supabase.storage
     .from('event-images')
     .upload(fileName, file, { cacheControl: '3600', upsert: false })
 
   if (error) {
-    console.error('❌ Fehler beim Hochladen in Supabase:', error.message)
+    console.error('Error uploading to Supabase:', error.message)
     return { error }
   }
 
-  // Öffentliche URL abrufen
+  // Get public URL
   const publicUrl = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/event-images/${fileName}`
 
   if (!publicUrl.startsWith('http')) {
-    console.warn('⚠️ Konnte keine öffentliche URL abrufen - Fallback wird verwendet')
+    console.warn('Could not retrieve public URL - fallback will be used')
     return { url: '/fallback/default0.jpg' }
   }
 
-  console.log('✅ Bild erfolgreich hochgeladen:', publicUrl)
+  console.log('Image uploaded successfully:', publicUrl)
   return { url: publicUrl }
 }
 
-// 🔹 Dresscode-Name normalisieren & passendes Fallback-Bild wählen
-const getFallbackImage = (dressCode) => {
-  if (!dressCode) return dressCodeImages.default
-  const normalizedDressCode = dressCode.toLowerCase().trim()
+// Normalize dress code name and choose a fallback image
+// const getFallbackImage = (dressCode) => {
+//   if (!dressCode) return dressCodeImages.default
+//   const normalizedDressCode = dressCode.toLowerCase().trim()
 
-  const match = Object.keys(dressCodeImages).find((key) => normalizedDressCode.includes(key))
-  return match ? dressCodeImages[match] : dressCodeImages.default
-}
+//   const match = Object.keys(dressCodeImages).find((key) => normalizedDressCode.includes(key))
+//   return match ? dressCodeImages[match] : dressCodeImages.default
+// }
 
-// 🔹 Event abrufen
+// Get event by ID
 export const getEventById = async (eventId) => {
   const { data, error } = await supabase.from('events').select('*').eq('id', eventId).single()
   if (error) {
-    console.error('❌ Fehler beim Abrufen des Events:', error.message)
+    console.error('Error retrieving event:', error.message)
   }
   return { data, error }
 }
 
-// 🔹 Event löschen
+// Delete event
 export const deleteEvent = async (eventId) => {
   const { error } = await supabase.from('events').delete().eq('id', eventId)
   if (error) {
-    console.error('❌ Fehler beim Löschen des Events:', error.message)
+    console.error('Error deleting event:', error.message)
   }
   return { error }
 }
 
-// 🔹 Live-Updates für Events abonnieren
+// Subscribe to live updates for events
 export const subscribeToEvents = (callback) => {
   return supabase
     .channel('events')

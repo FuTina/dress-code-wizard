@@ -121,11 +121,9 @@ export const generateOutfitDescription = async (dressCode) => {
   }
 }
 
-// 🔹 Gibt einen zufälligen Dresscode zurück
 const getFallbackDressCode = () =>
   fallbackDressCodes[Math.floor(Math.random() * fallbackDressCodes.length)]
 
-// 🔹 Passendes Fallback-Bild zum Dresscode zurückgeben
 export const getFallbackImage = (dressCode) => {
   if (!dressCode) return fallbackImages.default
   const normalizedDressCode = dressCode.toLowerCase().trim()
@@ -138,9 +136,7 @@ export const getFallbackImage = (dressCode) => {
   )
 }
 
-/**
- *  🔹 Holt eine AI-generierte Dresscode-Idee oder nutzt das Fallback.
- */
+
 export const getDressCodeSuggestion = async () => {
   console.log('VITE_USE_AI:', import.meta.env.VITE_USE_AI)
   if (!USE_AI) {
@@ -181,9 +177,7 @@ export const getDressCodeSuggestion = async () => {
   }
 }
 
-/**
- *  🔹 Generiert ein AI-Bild oder nutzt ein Fallback.
- */
+
 export const generateEventImage = async (dressCode, setLoading) => {
   console.log('VITE_USE_AI:', import.meta.env.VITE_USE_AI)
   if (!dressCode) {
@@ -206,7 +200,7 @@ export const generateEventImage = async (dressCode, setLoading) => {
     const cleanDressCode = dressCode.replace(/["']/g, '').trim()
 
     //Generate an image of exactly one man and one woman standing side by side, dressed in theme-appropriate outfits
-    const prompt = `Generate a high-resolution, realistic, full-body image of exactly one man and one woman standing side by side, wearing purchasable outfits or costumes for the dress code "${cleanDressCode}".
+    const prompt = `Generate a high-resolution, realistic, full-body image of exactly one european man and one woman standing side by side, wearing purchasable outfits or costumes for the dress code "${cleanDressCode}".
     The outfits should be based on real, available clothing items. Focus on realistic fabrics, textures, and accessories.  
     Avoid surreal elements, exaggerated designs, or costumes that do not exist in real life.  
     If the dress code is unknown or no clear example exists, generate an outfit that follows a similar known theme from the examples below.  
@@ -235,7 +229,7 @@ export const generateEventImage = async (dressCode, setLoading) => {
       The man wears a red floral Hawaiian shirt, beige cargo shorts, flip-flops, and a straw fedora.  
     Follow this structure to generate a stylish, realistic, and purchasable outfit recommendation for the given theme.`
 
-    // 🔹 Timeout auf 45 Sekunden erhöhen
+    // 🔹 Timeout  45 s
     const response = await Promise.race([
       axios.post(
         'https://api.openai.com/v1/images/generations',
@@ -275,7 +269,6 @@ export const generateEventImage = async (dressCode, setLoading) => {
 
     console.log(`✅ AI image generated successfully: ${imageUrl}`)
 
-    // 🔹 Speichert das generierte Bild in Supabase
     const savedImageUrl = await saveGeneratedImage(imageUrl, cleanDressCode)
 
     return { imageUrl: savedImageUrl, error: null }
@@ -288,14 +281,13 @@ export const generateEventImage = async (dressCode, setLoading) => {
 }
 
 /**
- *  🔹 Speichert das AI-generierte Bild über das Backend in Supabase.
- */
+ *  Saves the AI-generated image to Supabase via the backend.
+ **/
 const saveGeneratedImage = async (imageUrl, dressCode) => {
   try {
     console.log(`💾 Sending image to backend for storage: ${imageUrl}`)
     console.log('🛠️ BACKEND_URL:', BACKEND_URL)
 
-    // 🔹 Sicherstellen, dass die URL immer korrekt aufgebaut ist
     const apiUrl = `${BACKEND_URL.replace(/\/$/, '')}/api/saveImage`
     console.log('🛠️ apiUrl:', apiUrl)
 

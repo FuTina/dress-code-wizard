@@ -4,6 +4,7 @@
 
     <div class="space-y-6">
       <input v-model="event.name" class="input-field" placeholder="✨ Event Name" />
+      <!-- <input v-model="event.name" :class="{'error': errorMessage && !event.name}" class="input-field" placeholder="✨ Event Name" /> -->
 
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
@@ -31,6 +32,7 @@
         ⚠️ {{ errorMessage }}
       </div>
 
+      <!-- TODO additional Drop Down Menu -->
       <div class="flex flex-col sm:flex-row gap-4">
         <input v-model="event.dress_code" class="input-field" placeholder="👗 Dress Code" />
         <button @click="generateDressCode" class="btn-ai">🪄 AI Suggestion</button>
@@ -93,16 +95,24 @@
     box-shadow 0.2s;
   width: 100%;
 }
+
+/* .input-field.error {
+  border-color: red;
+  box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+} */
+
 .input-field:focus {
   border-color: #9f7aea;
   box-shadow: 0 0 10px rgba(159, 122, 234, 0.4);
 }
+
 .input-label {
   font-weight: 600;
   color: #6b46c1;
   margin-bottom: 6px;
   display: block;
 }
+
 .btn-ai,
 .btn-upload,
 .btn-save,
@@ -113,35 +123,44 @@
   border-radius: 12px;
   transition: all 0.3s;
 }
+
 .btn-ai {
   background: #d6bcfa;
   color: #553c9a;
 }
+
 .btn-ai:hover {
   background: #b794f4;
 }
+
 .btn-upload {
   background: #b794f4;
   color: white;
 }
+
 .btn-upload:hover {
   background: #9f7aea;
 }
+
 .btn-save {
   background: #805ad5;
   color: white;
 }
+
 .btn-save:hover {
   background: #6b46c1;
 }
+
 .btn-download {
   background: #d6bcfa;
   color: #553c9a;
   margin-top: 8px;
 }
+
 .btn-download:hover {
   background: #b794f4;
 }
+
 .loader {
   border: 3px solid rgba(255, 255, 255, 0.3);
   border-top: 3px solid #805ad5;
@@ -150,11 +169,13 @@
   height: 16px;
   animation: spin 1s linear infinite;
 }
+
 @keyframes spin {
   to {
     transform: rotate(360deg);
   }
 }
+
 .preview-label {
   font-weight: bold;
   font-size: 16px;
@@ -227,7 +248,9 @@ export default {
     },
     async generateDressCode() {
       this.event.dress_code = await getDressCodeSuggestion()
+      this.setFallbackImageAndDescription();
     },
+
     validateDates() {
       const start = new Date(`${this.event.startdate}T${this.event.startTime}`)
       const end = new Date(`${this.event.enddate}T${this.event.endTime}`)
@@ -316,6 +339,12 @@ export default {
       this.outfitDescription =
         getFallbackDescription(this.event.dress_code?.trim().toLowerCase()) ||
         getFallbackDescription('default')
+
+      console.warn(
+        '⚠️ AI failed - fallback image & description set:',
+        this.previewImage,
+        this.outfitDescription,
+      )
     },
     triggerFileInput() {
       this.$refs.fileInput.click()

@@ -21,8 +21,7 @@ export async function uploadProfileImage(file) {
     return { error: uploadError }
   }
 
-  // 🔹 Public URL manuell korrekt generieren
-  const publicUrl = `https://jtsrmmuvvmnmwhovfjlt.supabase.co/storage/v1/object/public/${bucketName}/${filePath}`
+  const publicUrl = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/${bucketName}/${filePath}`
 
   console.log('✅ Profile Image Uploaded:', publicUrl)
   return { url: publicUrl, error: null }
@@ -37,14 +36,13 @@ export async function deleteProfileImage(imageUrl) {
   if (!imageUrl) return { error: 'No image URL provided' }
 
   const bucketName = 'profile-images'
-  const filePath = imageUrl.split(`${bucketName}/`)[1] // 🔥 Extrahiert den korrekten Dateipfad
+  const filePath = imageUrl.split(`${bucketName}/`)[1]
 
   if (!filePath) {
     console.error('❌ Invalid file path:', imageUrl)
     return { error: 'Invalid file path' }
   }
 
-  // 📌 Datei aus Supabase Storage löschen
   const { error } = await supabase.storage.from(bucketName).remove([filePath])
 
   if (error) {

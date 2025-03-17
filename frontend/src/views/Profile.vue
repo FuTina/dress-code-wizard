@@ -4,7 +4,6 @@
       <h1 class="text-2xl font-semibold text-purple-700 mb-6">👤 Your Profile</h1>
 
       <div v-if="user">
-        <!-- 🖼 Profilbild -->
         <div class="relative mx-auto w-32 h-32">
           <img
             :src="previewImage || user.user_metadata?.image_url || '/icons/user.svg'"
@@ -13,7 +12,6 @@
           />
         </div>
 
-        <!-- 📂 Datei-Upload & Aktionen -->
         <div class="mt-5 flex flex-col gap-3 w-full">
           <input type="file" @change="handleFileUpload" class="hidden" ref="fileInput" />
 
@@ -41,7 +39,6 @@
           </button>
         </div>
 
-        <!-- 🔑 Passwort ändern -->
         <div class="mt-6">
           <h2 class="text-md font-semibold text-gray-700 mb-3">🔑 Change Password</h2>
           <input
@@ -58,13 +55,11 @@
           </button>
         </div>
 
-        <!-- 🔹 Benutzerinfo -->
         <div class="mt-6 text-gray-700 text-sm border-t pt-4">
           <p><strong>Email:</strong> {{ user.email }}</p>
           <p class="text-xs"><strong>User ID:</strong> {{ user.id }}</p>
         </div>
 
-        <!-- 🚪 Logout Button -->
         <button
           @click="logout"
           class="mt-6 bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 transition w-full text-sm"
@@ -120,7 +115,6 @@ export default {
         return
       }
 
-      // 🖼 Bild-URL in Supabase speichern
       const { error: updateError } = await supabase.auth.updateUser({ data: { image_url: url } })
 
       if (updateError) {
@@ -128,7 +122,6 @@ export default {
         return
       }
 
-      // 🔄 Benutzer-Daten erneut abrufen
       await this.fetchUserData()
     },
 
@@ -145,7 +138,6 @@ export default {
 
       alert('✅ Image deleted!')
 
-      // 🔹 Entferne Bild-Referenz in Supabase Auth
       await supabase.auth.updateUser({ data: { image_url: null } })
       await this.fetchUserData()
     },
@@ -175,12 +167,10 @@ export default {
 </script>
 
 <style>
-/* 📌 Hintergrund auf modernem Grauton setzen */
 body {
   background-color: #f5f5f5;
 }
 
-/* 💡 Schatten für das Profilfeld */
 .bg-white {
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }

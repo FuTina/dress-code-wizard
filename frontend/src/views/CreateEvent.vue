@@ -52,7 +52,9 @@
       </button>
       <input type="file" ref="fileInput" @change="handleFileUpload" hidden />
 
+      <!-- Vorschau-Bereich mit "Preview:" -->
       <div v-if="previewImage" class="mt-4">
+        <p class="preview-label">🔍 Preview:</p>
         <img
           :src="previewImage"
           alt="Event Image"
@@ -152,6 +154,13 @@
   to {
     transform: rotate(360deg);
   }
+}
+.preview-label {
+  font-weight: bold;
+  font-size: 16px;
+  color: #6b46c1;
+  text-align: center;
+  margin-bottom: 8px;
 }
 </style>
 

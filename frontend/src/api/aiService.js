@@ -159,10 +159,10 @@ export const getDressCodeSuggestion = async () => {
           {
             role: 'user',
             content:
-              'Suggest a short, stylish, and creative dress code idea for a date, party, or dance event. Keep it **between 1-5 words** and make it exciting, unexpected, and humorous when possible. Ensure it is still understandable and practical to wear. Avoid abstract or surreal concepts. Use fun, themed, and classy ideas. Examples: "Tropical Exotic", "Neon Jungle", "British Elegance", "French", "Red Elegance", "Neverland", "Disco Cowboys", "Animal Pyjama", "Black & Gold", "Great Gatsby Remix", "Glitter & Denim". Only return the dress code title without explanation.',
+              'Suggest a short, stylish, and creative dress code idea for a date, party, or dance event. Keep it **between 1-3 words** and make it exciting, unexpected, and humorous when possible. Ensure it is still understandable and practical to wear. Avoid abstract or surreal concepts. Use fun, themed, and classy ideas. Examples: "Tropical Exotic", "Neon Jungle", "British Elegance", "French", "Red Elegance", "Neverland", "Disco Cowboys", "Animal Pyjama", "Black & Gold", "Great Gatsby Remix", "Glitter & Denim". Only return the dress code title without explanation.',
           },
         ],
-        temperature: 1.1,
+        temperature: 1.3,
         max_tokens: 10,
       },
       {

@@ -136,7 +136,6 @@ export const getFallbackImage = (dressCode) => {
   )
 }
 
-
 export const getDressCodeSuggestion = async () => {
   console.log('VITE_USE_AI:', import.meta.env.VITE_USE_AI)
   if (!USE_AI) {
@@ -176,7 +175,6 @@ export const getDressCodeSuggestion = async () => {
     return getFallbackDressCode()
   }
 }
-
 
 export const generateEventImage = async (dressCode, setLoading) => {
   console.log('VITE_USE_AI:', import.meta.env.VITE_USE_AI)

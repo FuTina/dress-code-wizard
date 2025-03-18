@@ -3,11 +3,17 @@
     <h1 class="text-3xl font-bold text-center text-purple-600 mb-6">📅 Your Events</h1>
 
     <ul v-if="events.length > 0" class="mt-4 space-y-4">
-      <li v-for="event in sortedEvents" :key="event.id"
-        class="p-4 bg-white rounded-lg shadow-md hover:shadow-lg transition-transform transform hover:scale-[1.02] border border-gray-200">
+      <li
+        v-for="event in sortedEvents"
+        :key="event.id"
+        class="p-4 bg-white rounded-lg shadow-md hover:shadow-lg transition-transform transform hover:scale-[1.02] border border-gray-200"
+      >
         <div class="flex flex-col sm:flex-row sm:items-center gap-4">
-          <img :src="event.image_url || getFallbackImage(event.dress_code)" alt="Event Image"
-            class="w-36 h-36 sm:w-48 sm:h-48 rounded-lg shadow object-cover border border-gray-300 mx-auto sm:mx-0" />
+          <img
+            :src="event.image_url || getFallbackImage(event.dress_code)"
+            alt="Event Image"
+            class="w-36 h-36 sm:w-48 sm:h-48 rounded-lg shadow object-cover border border-gray-300 mx-auto sm:mx-0"
+          />
 
           <div class="flex-1 text-center sm:text-left">
             <strong class="text-xl sm:text-2xl text-gray-900">{{ event.name }}</strong>
@@ -20,40 +26,53 @@
               <p :class="{ 'line-clamp': expandedEventId !== event.id }">
                 {{ event.description }}
               </p>
-              <button @click="toggleExpand(event.id)" class="text-purple-500 hover:underline text-xs font-semibold">
+              <button
+                @click="toggleExpand(event.id)"
+                class="text-purple-500 hover:underline text-xs font-semibold"
+              >
                 {{ expandedEventId === event.id ? 'Show less' : 'Show more' }}
               </button>
             </div>
 
-            <span class="text-gray-500 italic block mt-2">👗 {{ event.dress_code || 'Casual' }}</span>
+            <span class="text-gray-500 italic block mt-2"
+              >👗 {{ event.dress_code || 'Casual' }}</span
+            >
           </div>
 
           <!-- Buttons (Kalender & Bearbeiten/Löschen nebeneinander) -->
           <div class="grid grid-cols-2 gap-2 w-[140px] mx-auto sm:mx-0 sm:ml-auto mt-4 sm:mt-0">
             <!-- Erste Reihe: Kalender-Buttons -->
             <div class="col-span-2 flex gap-2">
-              <button @click="downloadICS(event)"
+              <button
+                @click="downloadICS(event)"
                 class="bg-blue-400 text-white flex-1 h-10 rounded-lg hover:bg-blue-500 transition shadow"
-                title="Download iCal (English)">
+                title="Download iCal (English)"
+              >
                 📅
               </button>
-              <button @click="openGoogleCalendar(event)"
+              <button
+                @click="openGoogleCalendar(event)"
                 class="bg-teal-400 text-white flex-1 h-10 rounded-lg hover:bg-teal-500 transition shadow"
-                title="Google Calendar">
+                title="Google Calendar"
+              >
                 📆
               </button>
             </div>
 
             <!-- Zweite Reihe: Edit/Delete -->
             <div class="col-span-2 flex gap-2">
-              <router-link :to="'/edit-event/' + event.id"
+              <router-link
+                :to="'/edit-event/' + event.id"
                 class="bg-amber-400 text-white flex-1 h-10 rounded-lg hover:bg-amber-500 transition shadow flex items-center justify-center"
-                title="Edit">
+                title="Edit"
+              >
                 ✏️
               </router-link>
-              <button @click="deleteEvent(event.id, event.image_url)"
+              <button
+                @click="deleteEvent(event.id, event.image_url)"
                 class="bg-rose-400 text-white flex-1 h-10 rounded-lg hover:bg-rose-500 transition shadow"
-                title="Delete">
+                title="Delete"
+              >
                 ❌
               </button>
             </div>
@@ -173,12 +192,12 @@ export default {
 
       console.log('📊 Loaded Events:', data)
 
-      this.events = data.map(event => ({
+      this.events = data.map((event) => ({
         ...event,
-        startdate: event.startdate.split('T')[0],  // ISO-Format sichern
+        startdate: event.startdate.split('T')[0], // ISO-Format sichern
         enddate: event.enddate.split('T')[0],
-        startTime: event.startTime.slice(0, 5),  // Stunden und Minuten behalten
-        endTime: event.endTime.slice(0, 5)
+        startTime: event.startTime.slice(0, 5), // Stunden und Minuten behalten
+        endTime: event.endTime.slice(0, 5),
       }))
     },
 
@@ -218,27 +237,29 @@ export default {
     },
     openGoogleCalendar(event) {
       if (!event.startdate || !event.startTime || !event.enddate || !event.endTime) {
-        console.error('❌ Error: Missing event data for Google Calendar.', event);
-        return;
+        console.error('❌ Error: Missing event data for Google Calendar.', event)
+        return
       }
 
-      const startDateTimeUTC = DateTime.fromISO(`${event.startdate}T${event.startTime}`, { zone: 'utc' })
+      const startDateTimeUTC = DateTime.fromISO(`${event.startdate}T${event.startTime}`, {
+        zone: 'utc',
+      })
         .toUTC()
-        .toFormat("yyyyMMdd'T'HHmmss'Z'");
+        .toFormat("yyyyMMdd'T'HHmmss'Z'")
 
       const endDateTimeUTC = DateTime.fromISO(`${event.enddate}T${event.endTime}`, { zone: 'utc' })
         .toUTC()
-        .toFormat("yyyyMMdd'T'HHmmss'Z'");
+        .toFormat("yyyyMMdd'T'HHmmss'Z'")
 
-      console.log('📅 Debug: Google Calendar (UTC)', startDateTimeUTC, endDateTimeUTC);
+      console.log('📅 Debug: Google Calendar (UTC)', startDateTimeUTC, endDateTimeUTC)
 
       const url = `https://calendar.google.com/calendar/r/eventedit?text=${encodeURIComponent(event.name)}
     &dates=${startDateTimeUTC}/${endDateTimeUTC}
     &details=${encodeURIComponent('Dress Code: ' + event.dress_code)}
     &location=${encodeURIComponent(event.location || 'Online')}
-    &sf=true&output=xml`;
+    &sf=true&output=xml`
 
-      window.open(url, '_blank');
+      window.open(url, '_blank')
     },
   },
 }

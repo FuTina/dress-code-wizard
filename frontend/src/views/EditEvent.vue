@@ -36,7 +36,12 @@
         <button @click="generateDressCode" class="btn-ai">🪄 AI Suggestion</button>
       </div>
 
-      <button v-if="USE_AI" @click="generateEventImage" class="btn-ai relative" :disabled="isGenerating">
+      <button
+        v-if="USE_AI"
+        @click="generateEventImage"
+        class="btn-ai relative"
+        :disabled="isGenerating"
+      >
         🎨 Generate AI Image
         <span v-if="isGenerating" class="loader absolute right-4 top-2"></span>
       </button>
@@ -48,20 +53,36 @@
       <input type="file" ref="fileInput" @change="handleFileUpload" hidden />
 
       <div v-if="previewImage || event.image_url" class="mt-4 text-center">
-        <img :src="previewImage || event.image_url" alt="Event Image"
-          class="w-full h-52 object-cover rounded-xl shadow-lg" />
+        <img
+          :src="previewImage || event.image_url"
+          alt="Event Image"
+          class="w-full h-52 object-cover rounded-xl shadow-lg"
+        />
 
         <div class="flex justify-center gap-2 mt-2">
-          <a v-if="event.image_url" :href="event.image_url" target="_blank" class="action-button download-button">
+          <a
+            v-if="event.image_url"
+            :href="event.image_url"
+            target="_blank"
+            class="action-button download-button"
+          >
             ⬇️ Download Image
           </a>
-          <button v-if="event.image_url" @click="deleteCurrentImage" class="action-button delete-button">
+          <button
+            v-if="event.image_url"
+            @click="deleteCurrentImage"
+            class="action-button delete-button"
+          >
             ❌ Delete Image
           </button>
         </div>
 
-        <textarea v-model="event.description" class="input-field resize-none mt-3" rows="3"
-          placeholder="📝 Describe the outfit..."></textarea>
+        <textarea
+          v-model="event.description"
+          class="input-field resize-none mt-3"
+          rows="3"
+          placeholder="📝 Describe the outfit..."
+        ></textarea>
       </div>
 
       <button @click="updateEvent" class="btn-save">✅ Save Changes</button>
@@ -111,31 +132,30 @@ export default {
   watch: {
     'event.startdate'(newDate) {
       if (!this.event.enddate) {
-        this.event.enddate = newDate;
+        this.event.enddate = newDate
       }
     },
     'event.startTime'(newTime) {
       if (!this.event.endTime) {
-        this.event.endTime = newTime; // Directly set endTime without modification
+        this.event.endTime = newTime // Directly set endTime without modification
       }
     },
-
   },
   async mounted() {
     const { data, error } = await supabase
       .from('events')
       .select('*')
       .eq('id', this.$route.params.id)
-      .single();
+      .single()
 
     if (error || !data) {
-      console.error('❌ Error loading event:', error?.message || 'No data found');
-      alert('❌ Event not found!');
-      this.$router.push('/dashboard');
-      return;
+      console.error('❌ Error loading event:', error?.message || 'No data found')
+      alert('❌ Event not found!')
+      this.$router.push('/dashboard')
+      return
     }
 
-    console.log('📅 Original event data from Supabase:', data);
+    console.log('📅 Original event data from Supabase:', data)
 
     this.event = {
       ...data,
@@ -143,11 +163,10 @@ export default {
       enddate: data.enddate || '',
       startTime: data.startTime ? data.startTime.slice(0, 8) : '', // Use full HH:mm:ss format
       endTime: data.endTime ? data.endTime.slice(0, 8) : '',
-    };
+    }
 
-    console.log('✅ Loaded event data:', this.event);
+    console.log('✅ Loaded event data:', this.event)
   },
-
 
   methods: {
     async generateDressCode() {
@@ -155,37 +174,37 @@ export default {
     },
     async generateEventImage() {
       if (!this.event.dress_code) {
-        alert('❌ Please enter a dress code first!');
-        return;
+        alert('❌ Please enter a dress code first!')
+        return
       }
 
-      this.isGenerating = true;
+      this.isGenerating = true
 
       try {
         const { imageUrl } = await generateEventImage(this.event.dress_code, (loading) => {
-          this.isGenerating = loading;
-        });
+          this.isGenerating = loading
+        })
 
         // Fetch the AI-generated image as a blob
-        const imageBlob = await fetch(imageUrl).then((res) => res.blob());
+        const imageBlob = await fetch(imageUrl).then((res) => res.blob())
 
         // Upload the image and get the new URL
-        const { url: uploadedImageUrl } = await uploadImage(imageBlob, 'event-images');
+        const { url: uploadedImageUrl } = await uploadImage(imageBlob, 'event-images')
 
         // ✅ Assign the new image URL to event.image_url to reflect the change
-        this.event.image_url = uploadedImageUrl;
-        this.previewImage = uploadedImageUrl;
+        this.event.image_url = uploadedImageUrl
+        this.previewImage = uploadedImageUrl
 
         // Generate a new outfit description
-        this.event.description = await generateOutfitDescription(this.event.dress_code);
+        this.event.description = await generateOutfitDescription(this.event.dress_code)
 
         // Clear the old image reference
-        this.imageFile = null;
+        this.imageFile = null
       } catch (error) {
-        console.error('❌ AI Image Generation Error:', error);
-        this.setFallbackImageAndDescription();
+        console.error('❌ AI Image Generation Error:', error)
+        this.setFallbackImageAndDescription()
       } finally {
-        this.isGenerating = false;
+        this.isGenerating = false
       }
     },
 
@@ -217,35 +236,33 @@ export default {
     },
 
     async updateEvent() {
-      console.log('📝 Saving event:', this.event);
+      console.log('📝 Saving event:', this.event)
 
       if (!this.event.startdate || !this.event.startTime) {
-        this.errorMessage = '⚠️ Please select a start date and time!';
-        return;
+        this.errorMessage = '⚠️ Please select a start date and time!'
+        return
       }
 
       if (!this.event.enddate || !this.event.endTime) {
-        this.errorMessage = '⚠️ Please select an end date and time!';
-        return;
+        this.errorMessage = '⚠️ Please select an end date and time!'
+        return
       }
 
-      const formattedStartTime = this.event.startTime.length === 5
-        ? `${this.event.startTime}:00`
-        : this.event.startTime;  // Ensure HH:mm:ss format
+      const formattedStartTime =
+        this.event.startTime.length === 5 ? `${this.event.startTime}:00` : this.event.startTime // Ensure HH:mm:ss format
 
-      const formattedEndTime = this.event.endTime.length === 5
-        ? `${this.event.endTime}:00`
-        : this.event.endTime;  // Ensure HH:mm:ss format
+      const formattedEndTime =
+        this.event.endTime.length === 5 ? `${this.event.endTime}:00` : this.event.endTime // Ensure HH:mm:ss format
 
-      let imageUrl = this.event.image_url;
+      let imageUrl = this.event.image_url
 
       if (this.imageFile) {
-        const { url } = await uploadImage(this.imageFile, 'event-images');
-        imageUrl = url;
+        const { url } = await uploadImage(this.imageFile, 'event-images')
+        imageUrl = url
       } else if (this.previewImage && this.previewImage.startsWith('blob:')) {
-        const blob = await fetch(this.previewImage).then((r) => r.blob());
-        const { url } = await uploadImage(blob, 'event-images');
-        imageUrl = url;
+        const blob = await fetch(this.previewImage).then((r) => r.blob())
+        const { url } = await uploadImage(blob, 'event-images')
+        imageUrl = url
       }
 
       const updateData = {
@@ -257,20 +274,15 @@ export default {
         dress_code: this.event.dress_code,
         description: this.event.description,
         image_url: imageUrl,
-      };
+      }
 
-      console.log('📦 Data being sent to Supabase:', updateData);
+      console.log('📦 Data being sent to Supabase:', updateData)
 
-      await supabase
-        .from('events')
-        .update(updateData)
-        .eq('id', this.event.id);
+      await supabase.from('events').update(updateData).eq('id', this.event.id)
 
-      alert('✅ Event successfully updated!');
-      this.$router.push('/dashboard');
-    }
-
-
+      alert('✅ Event successfully updated!')
+      this.$router.push('/dashboard')
+    },
   },
 }
 </script>

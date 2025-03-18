@@ -248,7 +248,7 @@ export default {
     },
     async generateDressCode() {
       this.event.dress_code = await getDressCodeSuggestion()
-      this.setFallbackImageAndDescription();
+      this.setFallbackImageAndDescription()
     },
 
     validateDates() {

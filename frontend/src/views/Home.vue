@@ -15,7 +15,7 @@
 </template>
 
 <style>
-/* Animation für leuchtenden Text */
+/* Animation for glowing text */
 @keyframes glow {
   0% {
     text-shadow: 0 0 5px rgba(128, 0, 128, 0.6);

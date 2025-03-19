@@ -2,7 +2,7 @@
   <nav
     class="bg-gray-900 text-white p-4 flex justify-between items-center fixed top-0 left-0 w-full shadow-xl z-50"
   >
-    <!-- Left: Logo mit Magic Wand Icon -->
+    <!-- Left: Logo with Magic Wand Icon -->
     <router-link
       to="/"
       class="font-bold flex items-center gap-2 hover:text-purple-400 transition whitespace-nowrap"
@@ -22,15 +22,15 @@
       </router-link>
     </div>
 
-    <!-- Right: Profil + Mobile Menü Button -->
+    <!-- Right: Profile + Mobile Menu Button -->
     <div class="flex items-center gap-4">
-      <!-- Profil Dropdown (Nur sichtbar auf großen Bildschirmen) -->
+      <!-- Profile Dropdown (Visible only on large screens) -->
       <div v-if="user && !isSmallScreen" class="relative">
         <button
           @click="toggleDropdown"
           class="bg-gray-800 px-4 py-2 rounded hover:bg-gray-700 transition flex items-center gap-2"
         >
-          <!-- Profilbild oder Fallback-Icon -->
+          <!-- Profile picture or fallback icon -->
           <img
             v-if="user.user_metadata?.image_url"
             :src="user.user_metadata.image_url"
@@ -45,7 +45,7 @@
           >
         </button>
 
-        <!-- Dropdown Menü -->
+        <!-- Dropdown Menu -->
         <transition name="fade">
           <div v-if="dropdownOpen" class="absolute right-0 mt-2 w-48 bg-gray-800 rounded shadow-lg">
             <router-link to="/profile" class="menu-item">
@@ -80,7 +80,7 @@
           <i class="fas fa-calendar-plus"></i> Create Event
         </router-link>
 
-        <!-- Profil & Logout nur auf mobilen Screens -->
+        <!-- Profile & Logout only on mobile screens -->
         <div v-if="user">
           <router-link to="/profile" class="menu-item">
             <i class="fas fa-user"></i> Profile
@@ -90,7 +90,7 @@
           </button>
         </div>
 
-        <!-- Login/Register für nicht eingeloggte Nutzer -->
+        <!-- Login/Register for unauthenticated users -->
         <div v-else>
           <router-link to="/login" class="menu-item">
             <i class="fas fa-sign-in-alt"></i> Login
@@ -135,7 +135,7 @@ export default {
       if (data.user) {
         this.user = {
           ...data.user,
-          user_metadata: data.user.user_metadata || {}, // Sicherstellen, dass user_metadata existiert
+          user_metadata: data.user.user_metadata || {}, // Ensure user_metadata exists
         }
       }
     },
@@ -160,7 +160,7 @@ export default {
 </script>
 
 <style>
-/* 🌙 Mobile Menü */
+/* 🌙 Mobile Menu */
 .menu-item {
   display: flex;
   align-items: center;
@@ -185,7 +185,7 @@ export default {
   color: #b794f4;
 }
 
-/* 📌 Mobile Menü Animation */
+/* 📌 Mobile Menu Animation */
 .slide-enter-active,
 .slide-leave-active {
   transition: transform 0.3s ease-out;

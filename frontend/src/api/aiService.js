@@ -1,13 +1,10 @@
 import axios from 'axios'
 
-// export const USE_AI = true // Setze auf `false`, wenn AI nicht verwendet werden soll.
 export const USE_AI = import.meta.env.VITE_USE_AI === 'true'
-// TODO preview for (better) fallback images if AI can not be used
 
 const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8080' // Fallback zu localhost
 
-// 🔹 Fallback Dresscodes
 const fallbackDressCodes = [
   'Animal Pyjama Party 🦄',
   'Neverland Adventure 🏴‍☠️',
@@ -21,7 +18,6 @@ const fallbackDressCodes = [
   'Elegant Dinner 🥂',
 ]
 
-// 🔹 Fallback-Bilder für verschiedene Dresscodes
 const fallbackImages = {
   elegant: '/fallback/elegant.png',
   neverland: '/fallback/neverland.png',
@@ -136,6 +132,7 @@ export const getFallbackImage = (dressCode) => {
   )
 }
 
+
 export const getDressCodeSuggestion = async () => {
   console.log('VITE_USE_AI:', import.meta.env.VITE_USE_AI)
   if (!USE_AI) {
@@ -175,6 +172,7 @@ export const getDressCodeSuggestion = async () => {
     return getFallbackDressCode()
   }
 }
+
 
 export const generateEventImage = async (dressCode, setLoading) => {
   console.log('VITE_USE_AI:', import.meta.env.VITE_USE_AI)
@@ -325,7 +323,6 @@ const fetchShoppingResults = async (query) => {
       })) || []
     )
   } catch (error) {
-    console.error('❌ Error fetching shopping results:', error)
     return []
   }
 }

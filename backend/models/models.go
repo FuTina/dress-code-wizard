@@ -6,7 +6,8 @@ type Event struct {
 	ID          string    `json:"id"`
 	UserID      string    `json:"user_id"`
 	Name        string    `json:"name"`
-	Date        string    `json:"date"`
+	StartDate   string    `json:"startdate"`
+	EndDate     string    `json:"enddate"`
 	StartTime   string    `json:"startTime"`
 	EndTime     string    `json:"endTime"`
 	DressCode   string    `json:"dress_code"`

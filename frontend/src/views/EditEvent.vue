@@ -14,7 +14,6 @@
 
       <p class="text-sm text-gray-600 italic mt-2">{{ event.description }}</p>
 
-
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label class="input-label">📅 Start Date</label>
@@ -41,10 +40,18 @@
         ⚠️ {{ errorMessage }}
       </div>
 
-      <div class="flex gap-2">
-        <input v-model="event.dress_code" class="input-field w-full" placeholder="👗 Dress Code" />
-        <button @click="generateDressCode" class="btn-ai">🪄 AI Suggestion</button>
+      <div class="relative">
+        <input v-model="event.dress_code" class="input-field" placeholder="Choose or type a dress code..."
+          @focus="showDropdown = true" @blur="hideDropdown" />
+        <ul v-if="showDropdown" class="dropdown-list">
+          <li v-for="dressCode in filteredDressCodes" :key="dressCode.name" @mousedown="selectDressCode(dressCode.name)"
+            class="dropdown-item">
+            {{ dressCode.name }}
+          </li>
+        </ul>
       </div>
+
+      <button @click="generateDressCode" class="btn-ai">🪄 AI Suggestion</button>
 
       <button v-if="USE_AI" @click="generateEventImage" class="btn-ai relative" :disabled="isGenerating">
         🎨 Generate AI Image
@@ -72,7 +79,6 @@
 
         <textarea v-model="event.outfit_suggestion" class="input-field resize-none mt-3" rows="3"
           placeholder="📝 Describe the outfit..."></textarea>
-
       </div>
 
       <button @click="updateEvent" class="btn-save">✅ Save Changes</button>
@@ -94,6 +100,7 @@ import {
   getFallbackImage,
   getFallbackOutfitSuggestion,
   USE_AI,
+  fetchSavedDressCodes,
 } from '@/api/aiService'
 
 export default {
@@ -107,9 +114,11 @@ export default {
         startTime: '',
         endTime: '',
         dress_code: '',
+        event_type: '',
         description: '',
         image_url: null,
       },
+      availableDressCodes: [],
       imageFile: null,
       previewImage: null,
       outfit_suggestion: '',
@@ -117,6 +126,13 @@ export default {
       isGenerating: false,
       USE_AI,
     }
+  },
+  computed: {
+    filteredDressCodes() {
+      return this.availableDressCodes.filter(
+        (dressCode) => dressCode.event_type?.toLowerCase() === this.event.event_type.toLowerCase()
+      )
+    },
   },
 
   watch: {
@@ -130,8 +146,16 @@ export default {
         this.event.endTime = newTime // Directly set endTime without modification
       }
     },
+    'event.event_type': {
+      handler: async function () {
+        await this.fetchFilteredDressCodes()
+      },
+      immediate: true,
+    },
   },
   async mounted() {
+    this.availableDressCodes = await fetchSavedDressCodes()
+
     const { data, error } = await supabase
       .from('events')
       .select('*')
@@ -161,12 +185,29 @@ export default {
   methods: {
     updateDescription() {
       const descriptions = {
-        party: "A fun party with music and dance!",
-        business: "A formal business meeting with professional attire.",
-        date: "A romantic date with stylish and elegant outfits."
-      };
-      this.event.description = descriptions[this.event.event_type] || "General event";
+        party: 'A fun party with music and dance!',
+        business: 'A formal business meeting with professional attire.',
+        date: 'A romantic date with stylish and elegant outfits.',
+      }
+      this.event.description = descriptions[this.event.event_type] || 'General event'
     },
+    async fetchFilteredDressCodes() {
+      try {
+        this.availableDressCodes = await fetchSavedDressCodes(this.event.event_type)
+      } catch (error) {
+        console.error('❌ Error fetching dress codes:', error)
+      }
+    },
+    selectDressCode(dressCode) {
+      this.event.dress_code = dressCode
+      this.showDropdown = false
+    },
+    hideDropdown() {
+      setTimeout(() => {
+        this.showDropdown = false
+      }, 200)
+    },
+
     async generateDressCode() {
       this.event.dress_code = await getDressCodeSuggestion()
     },
@@ -365,7 +406,9 @@ export default {
   border: 2px solid #ddd;
   border-radius: 12px;
   outline: none;
-  transition: border 0.2s, box-shadow 0.2s;
+  transition:
+    border 0.2s,
+    box-shadow 0.2s;
   width: 100%;
   max-width: 100%;
   appearance: none;

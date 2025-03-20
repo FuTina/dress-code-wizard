@@ -41,12 +41,20 @@
       <div v-if="errorMessage" class="text-red-500 text-center font-semibold">
         ⚠️ {{ errorMessage }}
       </div>
+      <label class="input-label">👗 Choose or Enter Dress Code</label>
+      <div class="relative">
+        <input v-model="event.dress_code" class="input-field" placeholder="Choose or type a dress code..."
+          @focus="showDropdown = true" @blur="hideDropdown" />
+        <ul v-if="showDropdown" class="dropdown-list">
+          <li v-for="dressCode in filteredDressCodes" :key="dressCode.name" @mousedown="selectDressCode(dressCode.name)"
+            class="dropdown-item">
+            {{ dressCode.name }}
+          </li>
+        </ul>
 
-      <!-- TODO additional Drop Down Menu -->
-      <div class="flex flex-col sm:flex-row gap-4">
-        <input v-model="event.dress_code" class="input-field" placeholder="👗 Dress Code" />
-        <button @click="generateDressCode" class="btn-ai">🪄 AI Suggestion</button>
       </div>
+
+      <button @click="generateDressCode" class="btn-ai">🪄 AI Suggestion</button>
 
       <button v-if="USE_AI" @click="generateEventImage" class="btn-ai relative" :disabled="isGenerating">
         🎨 Generate AI Image
@@ -66,7 +74,6 @@
 
         <textarea v-model="event.outfit_suggestion" class="input-field resize-none mt-3" rows="3"
           placeholder="📝 Describe the outfit..."></textarea>
-
 
         <button v-if="isSupabaseImage(previewImage)" @click="openImageInNewTab(previewImage)" class="btn-download">
           ⬇️ View & Download Image
@@ -187,7 +194,7 @@
     border 0.2s,
     box-shadow 0.2s;
   width: 100%;
-  max-width: 100%;
+  max-width: none;
   appearance: none;
   background-color: white;
   font-size: 16px;
@@ -199,7 +206,6 @@
 }
 
 @media (max-width: 1024px) {
-
   .input-dropdown {
     width: 100%;
     font-size: 14px;
@@ -207,12 +213,36 @@
 }
 
 @media (max-width: 640px) {
-
-  /* Smartphones */
   .input-dropdown {
     font-size: 14px;
     padding: 10px;
   }
+}
+
+.relative {
+  position: relative;
+}
+
+.dropdown-list {
+  position: absolute;
+  width: 100%;
+  max-height: 200px;
+  overflow-y: auto;
+  background: white;
+  border: 2px solid #ddd;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  z-index: 50;
+}
+
+.dropdown-item {
+  padding: 10px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.dropdown-item:hover {
+  background: #f3e8ff;
 }
 </style>
 
@@ -225,6 +255,7 @@ import {
   getFallbackImage,
   getFallbackOutfitSuggestion,
   USE_AI,
+  fetchSavedDressCodes,
 } from '@/api/aiService'
 import { uploadImage } from '@/api/storageService'
 
@@ -241,13 +272,26 @@ export default {
         endTime: this.getNextFullHourPlusOne(),
         dress_code: '',
       },
+      availableDressCodes: [],
       imageFile: null,
       previewImage: getFallbackImage('default'),
       isGenerating: false,
       USE_AI,
       outfit_suggestion: getFallbackOutfitSuggestion('default'),
+      showDropdown: false,
       errorMessage: '',
     }
+  },
+  computed: {
+    filteredDressCodes() {
+      return this.availableDressCodes.filter(
+        (dressCode) => dressCode.event_type?.toLowerCase() === this.event.event_type.toLowerCase()
+      )
+    },
+  },
+
+  async mounted() {
+    await this.fetchFilteredDressCodes()
   },
 
   watch: {
@@ -260,6 +304,12 @@ export default {
       endTime.setHours(hours)
       endTime.setMinutes(minutes + 60) // Endzeit 1 Stunde später setzen
       this.event.endTime = endTime.toTimeString().substring(0, 5)
+    },
+    'event.event_type': {
+      handler: async function () {
+        await this.fetchFilteredDressCodes()
+      },
+      immediate: true, // Führt es direkt beim Laden aus
     },
   },
 
@@ -278,6 +328,23 @@ export default {
       date.setMinutes(0, 0, 0)
       date.setHours(date.getHours() + 2)
       return date.toTimeString().substring(0, 5)
+    },
+    selectDressCode(dressCode) {
+      this.event.dress_code = dressCode
+      this.showDropdown = false
+    },
+    async fetchFilteredDressCodes() {
+      try {
+        this.availableDressCodes = await fetchSavedDressCodes(this.event.event_type)
+      } catch (error) {
+        console.error('❌ Error fetching dress codes:', error)
+      }
+    },
+
+    hideDropdown() {
+      setTimeout(() => {
+        this.showDropdown = false
+      }, 200) // Verhindert sofortiges Schließen, wenn ein Item angeklickt wird
     },
     async generateDressCode() {
       this.event.dress_code = await getDressCodeSuggestion(this.event.event_type)
@@ -304,8 +371,12 @@ export default {
         return false
       }
       this.errorMessage = ''
+      setTimeout(() => {
+        this.errorMessage = ''
+      }, 4000)
       return true
     },
+
     async createEvent() {
       if (!this.validateDates()) return
 
@@ -327,23 +398,22 @@ export default {
         imageUrl = url
       }
 
-
-      console.log('event type before validation:', this.event.event_type);
+      console.log('event type before validation:', this.event.event_type)
 
       if (!this.event.event_type || typeof this.event.event_type !== 'string') {
-        alert('❌ Event type is missing or invalid!');
-        return;
+        alert('❌ Event type is missing or invalid!')
+        return
       }
 
-      const allowedEventTypes = ['party', 'business', 'date'];
-      this.event.event_type = this.event.event_type.trim().toLowerCase(); // Bereinigen
+      const allowedEventTypes = ['party', 'business', 'date']
+      this.event.event_type = this.event.event_type.trim().toLowerCase() // Bereinigen
 
       if (!allowedEventTypes.includes(this.event.event_type)) {
-        alert('❌ Invalid event type! Please select a valid type.');
-        return;
+        alert('❌ Invalid event type! Please select a valid type.')
+        return
       }
 
-      console.log('event type after validation:', this.event.event_type);
+      console.log('event type after validation:', this.event.event_type)
 
       await createEvent({
         name: this.event.name,
@@ -357,7 +427,6 @@ export default {
         description: this.event.description?.trim() || '',
         outfit_suggestion: this.event.outfit_suggestion?.trim() || '',
       })
-
 
       alert('✅ Event saved!')
       this.$router.push('/dashboard')
@@ -378,9 +447,13 @@ export default {
 
       try {
         if (USE_AI) {
-          const { imageUrl } = await generateEventImage(this.event.dress_code, (loading) => {
-            this.isGenerating = loading
-          })
+          const { imageUrl } = await generateEventImage(
+            this.event.dress_code,
+            this.event.event_type,
+            (loading) => {
+              this.isGenerating = loading
+            },
+          )
 
           this.previewImage = imageUrl || getFallbackImage(this.event.dress_code)
           this.event.outfit_suggestion = await generateOutfitSuggestion(this.event.dress_code)
@@ -388,7 +461,7 @@ export default {
           this.setFallbackImageAndOutfitSuggestion()
         }
       } catch (error) {
-        console.error('❌ AI Image Generation Error:', error)
+        console.error('❌ AI image generation failed:', error.response?.data || error.message)
         this.setFallbackImageAndOutfitSuggestion()
       } finally {
         this.isGenerating = false
@@ -404,7 +477,7 @@ export default {
       console.warn(
         '⚠️ AI failed - fallback image & suggestion set:',
         this.previewImage,
-        this.event.outfit_suggestion
+        this.event.outfit_suggestion,
       )
     },
     triggerFileInput() {

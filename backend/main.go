@@ -1,9 +1,12 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
+	"time"
 
 	"github.com/FuTina/dress-code-wizard/database"
 	"github.com/FuTina/dress-code-wizard/routes"
@@ -18,19 +21,17 @@ func main() {
 		log.Println("⚠️ No .env file found, using default values")
 	}
 
-	// 🔹 Hole Variablen aus der .env Datei
 	frontendURL := os.Getenv("FRONTEND_URL")
 	if frontendURL == "" {
-		frontendURL = "http://localhost:5173" // Standard für lokale Entwicklung
+		frontendURL = "http://localhost:5173"
 	}
 	log.Println("🌐 Allowed FRONTEND_URL:", frontendURL)
 
 	port := os.Getenv("PORT")
 	if port == "" {
-		port = "8080" // Standardport setzen
+		port = "8080"
 	}
 
-	// 🔹 Initialisiere Fiber
 	app := fiber.New()
 
 	app.Use(cors.New(cors.Config{
@@ -40,7 +41,6 @@ func main() {
 		AllowCredentials: true,
 	}))
 
-	// 🔹 Extra Middleware für Preflight OPTIONS-Requests
 	app.Options("/*", func(c *fiber.Ctx) error {
 		c.Set("Access-Control-Allow-Origin", frontendURL)
 		c.Set("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS")
@@ -48,16 +48,47 @@ func main() {
 		return c.SendStatus(fiber.StatusNoContent)
 	})
 
-	// 📌 Datenbankverbindung herstellen
 	log.Println("🔗 Connecting to database...")
 	database.ConnectDB()
 	log.Println("✅ Database connection established.")
 
-	// 📌 API-Routen registrieren
 	routes.SetupRoutes(app)
 	log.Println("✅ API routes initialized.")
 
-	// 📌 Server starten
 	fmt.Printf("🚀 Server running on port %s\n", port)
 	log.Fatal(app.Listen(":" + port))
+
+	go func() {
+		time.Sleep(3 * time.Second)
+		seedDressCodes()
+	}()
+}
+func seedDressCodes() {
+	// Load BACKEND_URL from environment variables, fallback to localhost
+	backendURL := os.Getenv("BACKEND_URL")
+	if backendURL == "" {
+		backendURL = "http://localhost:8080"
+	}
+
+	dressCodes := []map[string]string{
+		{"name": "Neon Glow", "event_type": "party"},
+		{"name": "Great Gatsby", "event_type": "party"},
+		{"name": "Elegant Formal", "event_type": "business"},
+		{"name": "Corporate Chic", "event_type": "business"},
+		{"name": "Romantic Red", "event_type": "date"},
+		{"name": "Moonlight Dinner", "event_type": "date"},
+	}
+
+	for _, dressCode := range dressCodes {
+		apiURL := fmt.Sprintf("%s/api/dresscodes", backendURL)
+		reqBody := bytes.NewBuffer([]byte(fmt.Sprintf(`{"name": "%s", "event_type": "%s"}`, dressCode["name"], dressCode["event_type"])))
+
+		resp, err := http.Post(apiURL, "application/json", reqBody)
+		if err != nil {
+			log.Println("⚠️ Failed to insert dress code:", dressCode["name"], "Error:", err)
+		} else {
+			log.Println("✅ Dress Code inserted:", dressCode["name"], "Response Status:", resp.Status)
+			resp.Body.Close()
+		}
+	}
 }

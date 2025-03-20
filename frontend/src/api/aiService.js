@@ -5,6 +5,18 @@ export const USE_AI = import.meta.env.VITE_USE_AI === 'true'
 const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8080' // Fallback zu localhost
 
+// TODO edit event in same style as create event
+
+// TODO write and get dresscodes and images from previous events to the database
+// fallbackdropdown nach event type eingrenzen
+// TODO clean up code, add comments
+
+// TODO delete account
+// TODO fix go api
+// TODO do invitations
+// TODO update readme
+// TODO add tests
+
 const fallbackDressCodes = [
   'Animal Pyjama Party 🦄',
   'Neverland Adventure 🏴‍☠️',
@@ -17,6 +29,31 @@ const fallbackDressCodes = [
   'Beach Party 🌴',
   'Elegant Dinner 🥂',
 ]
+
+const fallbackDressCodesByType = {
+  party: [
+    'Neon Glow 🌟',
+    'Great Gatsby 🎩',
+    'Masquerade Ball 🎭',
+    'Disco Fever 🕺',
+    'Jungle Party 🌿',
+  ],
+  business: [
+    'Elegant Formal 🤵',
+    'Corporate Chic 👔',
+    'Smart Casual 👖',
+    'Luxury Black Tie 🎩',
+    'Classic Blue Suit 🏢',
+  ],
+  date: [
+    'Romantic Red ❤️',
+    'Elegant Black 🖤',
+    'Vintage Love 🎶',
+    'Cozy Autumn 🍂',
+    'Moonlight Dinner 🌙',
+  ],
+  default: ['Black and White 🖤🤍', 'Futuristic Neon 🔮', 'Elegant Dinner 🥂'],
+}
 
 const fallbackImages = {
   elegant: '/fallback/elegant.png',
@@ -118,8 +155,10 @@ export const generateOutfitSuggestion = async (dressCode) => {
   }
 }
 
-const getFallbackDressCode = () =>
-  fallbackDressCodes[Math.floor(Math.random() * fallbackDressCodes.length)]
+const getFallbackDressCode = (eventType) => {
+  const dressCodes = fallbackDressCodesByType[eventType] || fallbackDressCodesByType.default
+  return dressCodes[Math.floor(Math.random() * dressCodes.length)]
+}
 
 export const getFallbackImage = (dressCode) => {
   if (!dressCode) return fallbackImages.default
@@ -133,15 +172,16 @@ export const getFallbackImage = (dressCode) => {
   )
 }
 
-export const getDressCodeSuggestion = async () => {
+export const getDressCodeSuggestion = async (eventType) => {
   console.log('VITE_USE_AI:', import.meta.env.VITE_USE_AI)
+
   if (!USE_AI) {
-    console.warn('⚠️ AI deaktiviert . verwende Fallback-Dresscode.')
-    return getFallbackDressCode()
+    console.warn('⚠️ AI deaktiviert – verwende Fallback-Dresscode.')
+    return getFallbackDressCode(eventType)
   }
 
   try {
-    console.log(`🔹 Requesting OpenAI dress code...`)
+    console.log(`🔹 Requesting OpenAI dress code for event type: ${eventType}`)
 
     const response = await axios.post(
       'https://api.openai.com/v1/chat/completions',
@@ -150,8 +190,13 @@ export const getDressCodeSuggestion = async () => {
         messages: [
           {
             role: 'user',
-            content:
-              'Suggest a short, stylish, and creative dress code idea for a date, party, or dance event. Keep it **between 1-3 words** and make it exciting, unexpected, and humorous when possible. Ensure it is still understandable and practical to wear. Avoid abstract or surreal concepts. Use fun, themed, and classy ideas. Examples: "Tropical Exotic", "Neon Jungle", "British Elegance", "French", "Red Elegance", "Neverland", "Disco Cowboys", "Animal Pyjama", "Black & Gold", "Great Gatsby Remix", "Glitter & Denim". Only return the dress code title without explanation.',
+            content: `Suggest a short, stylish, and creative dress code idea specifically for an event of type "${eventType}". 
+            Ensure that the theme is appropriate for the event type. For example:  
+            - Party: "Neon Glow", "Great Gatsby", "Masquerade"  
+            - Business Meeting: "Elegant Formal", "Corporate Chic", "Smart Casual"  
+            - Date: "Romantic Red", "Elegant Black", "Vintage Love"  
+            
+            Return only the dress code title, no explanations. Keep it between **1-5 words**.`,
           },
         ],
         temperature: 1.3,
@@ -166,25 +211,88 @@ export const getDressCodeSuggestion = async () => {
     )
 
     const suggestion = response.data?.choices?.[0]?.message?.content?.trim().replace(/["']/g, '')
-    return suggestion && USE_AI ? suggestion : getFallbackDressCode()
+    return suggestion && USE_AI ? suggestion : getFallbackDressCode(eventType)
   } catch (error) {
     console.error('❌ OpenAI error:', error.response?.data || error.message)
-    return getFallbackDressCode()
+    return getFallbackDressCode(eventType)
+  }
+}
+const fetchExistingImage = async (dressCode, eventType) => {
+  try {
+    console.log('📡 Checking for existing image in database:', dressCode, eventType)
+
+    const { data } = await axios.get(
+      `${BACKEND_URL}/api/getImage?dressCode=${encodeURIComponent(dressCode)}&eventType=${encodeURIComponent(eventType)}`,
+    )
+
+    if (data.error) {
+      console.warn('⚠️ No image found in database:', dressCode, eventType)
+      return null
+    }
+
+    console.log('✅ Found existing image:', data.imageUrl)
+    return data.imageUrl
+  } catch (error) {
+    console.warn('⚠️ No image found (API error). Generating new image...')
+    return null
   }
 }
 
-export const generateEventImage = async (dressCode, setLoading) => {
+async function fetchDressCodes() {
+  const { data } = await axios.get(`${BACKEND_URL}/api/dresscodes`)
+  return data || []
+}
+export const fetchSavedDressCodes = async (eventType = '') => {
+  try {
+    const url = eventType
+      ? `${BACKEND_URL}/api/dresscodes?eventType=${eventType}`
+      : `${BACKEND_URL}/api/dresscodes`
+
+    const { data } = await axios.get(url)
+
+    if (!Array.isArray(data)) {
+      console.error('❌ Unexpected response format for dress codes:', data)
+      return []
+    }
+
+    return data
+  } catch (error) {
+    console.error('❌ Error fetching the dress codes:', error)
+    return []
+  }
+}
+
+export default {
+  data() {
+    return {
+      availableDressCodes: [],
+    }
+  },
+  async mounted() {
+    this.availableDressCodes = await fetchDressCodes()
+  },
+}
+
+export const generateEventImage = async (dressCode, eventType, setLoading = (val) => {}) => {
   console.log('VITE_USE_AI:', import.meta.env.VITE_USE_AI)
   if (!dressCode) {
-    console.warn('⚠️ Kein Dresscode vorhanden - verwende Fallback.')
-    return { imageUrl: getFallbackImage(null), error: 'Kein Dresscode vorhanden' }
+    console.warn('⚠️ No dress code provided - using fallback.')
+    return { imageUrl: getFallbackImage(null), error: 'No dress code provided' }
+  }
+
+  setLoading(true)
+
+  const existingImage = await fetchExistingImage(dressCode, eventType)
+  if (existingImage) {
+    console.log('✅ Reusing existing image:', existingImage)
+    return { imageUrl: existingImage, error: null }
   }
 
   if (!USE_AI) {
-    console.warn('⚠️ AI deaktiviert - Fallback-Bild wird verwendet.')
+    console.warn('⚠️ AI disabled - using fallback image.')
     return {
       imageUrl: fallbackImages[dressCode.toLowerCase()] || fallbackImages.default,
-      error: 'AI deaktiviert',
+      error: 'AI disabled',
     }
   }
 
@@ -195,7 +303,7 @@ export const generateEventImage = async (dressCode, setLoading) => {
     const cleanDressCode = dressCode.replace(/["']/g, '').trim()
 
     //Generate an image of exactly one man and one woman standing side by side, dressed in theme-appropriate outfits
-    const prompt = `Generate a high-resolution, realistic, full-body image of exactly one european man and one woman standing side by side, wearing purchasable outfits or costumes for the dress code "${cleanDressCode}".
+    const prompt = `Generate a high-resolution, realistic, full-body image of exactly one european man and one woman standing side by side, wearing purchasable outfits or costumes for the dress code "${cleanDressCode}" and the event type "${eventType}". The outfits should be realistic and appropriate for the dress code and event type.
     The outfits should be based on real, available clothing items. Focus on realistic fabrics, textures, and accessories.  
     Avoid surreal elements, exaggerated designs, or costumes that do not exist in real life.  
     If the dress code is unknown or no clear example exists, generate an outfit that follows a similar known theme from the examples below.  
@@ -264,7 +372,7 @@ export const generateEventImage = async (dressCode, setLoading) => {
 
     console.log(`✅ AI image generated successfully: ${imageUrl}`)
 
-    const savedImageUrl = await saveGeneratedImage(imageUrl, cleanDressCode)
+    const savedImageUrl = await saveGeneratedImage(imageUrl, cleanDressCode, eventType)
 
     return { imageUrl: savedImageUrl, error: null }
   } catch (error) {
@@ -278,7 +386,7 @@ export const generateEventImage = async (dressCode, setLoading) => {
 /**
  *  Saves the AI-generated image to Supabase via the backend.
  **/
-const saveGeneratedImage = async (imageUrl, dressCode) => {
+const saveGeneratedImage = async (imageUrl, dressCode, eventType) => {
   try {
     console.log(`💾 Sending image to backend for storage: ${imageUrl}`)
     console.log('🛠️ BACKEND_URL:', BACKEND_URL)
@@ -287,11 +395,11 @@ const saveGeneratedImage = async (imageUrl, dressCode) => {
     console.log('🛠️ apiUrl:', apiUrl)
 
     console.log(
-      `${apiUrl}?imageUrl=${encodeURIComponent(imageUrl)}&dressCode=${encodeURIComponent(dressCode)}`,
+      `${apiUrl}?imageUrl=${encodeURIComponent(imageUrl)}&dressCode=${encodeURIComponent(dressCode)}&eventType=${encodeURIComponent(eventType)}`,
     )
 
     const response = await fetch(
-      `${apiUrl}?imageUrl=${encodeURIComponent(imageUrl)}&dressCode=${encodeURIComponent(dressCode)}`,
+      `${apiUrl}?imageUrl=${encodeURIComponent(imageUrl)}&dressCode=${encodeURIComponent(dressCode)}&eventType=${encodeURIComponent(eventType)}`,
       { method: 'POST' },
     )
 

@@ -123,3 +123,52 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+
+-- 📌 Dress codes table
+-- Create table for dress codes
+CREATE TABLE dress_codes (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    name TEXT NOT NULL,
+    event_type TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT now()
+);
+
+-- Enable Row-Level Security (RLS)
+ALTER TABLE dress_codes ENABLE ROW LEVEL SECURITY;
+
+-- ✅ Policy: Public Read Access (Anyone can read)
+CREATE POLICY "Public Read Access"
+ON dress_codes
+FOR SELECT
+TO public
+USING (true);
+
+-- ✅ Policy: Allow Authenticated Users to Insert Dress Codes
+CREATE POLICY "Allow Authenticated Insert"
+ON dress_codes
+FOR INSERT
+TO authenticated
+WITH CHECK (auth.uid() IS NOT NULL);
+
+-- ✅ Policy: Allow Authenticated Users to Update Dress Codes (Optional)
+CREATE POLICY "Allow Authenticated Update"
+ON dress_codes
+FOR UPDATE
+TO authenticated
+USING (auth.uid() IS NOT NULL);
+
+-- ✅ Policy: Allow Authenticated Users to Delete Dress Codes (Optional)
+CREATE POLICY "Allow Authenticated Delete"
+ON dress_codes
+FOR DELETE
+TO authenticated
+USING (auth.uid() IS NOT NULL);
+
+-- ✅ Insert Initial Dress Codes (Defaults)
+INSERT INTO dress_codes (name, event_type) VALUES 
+('Neon Glow', 'party'),
+('Great Gatsby', 'party'),
+('Elegant Formal', 'business'),
+('Corporate Chic', 'business'),
+('Romantic Red', 'date'),
+('Moonlight Dinner', 'date');

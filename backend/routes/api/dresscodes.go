@@ -105,12 +105,7 @@ func InsertDressCode(c *fiber.Ctx) error {
 
 	log.Println("📝 Adding DressCode:", dressCode.Name, "Type:", dressCode.EventType)
 
-	// Removed unused response variable
 	data, count, err := supabaseClient.From("dress_codes").Insert(dressCode, false, "", "", "").Execute()
-	if err != nil {
-		log.Println("❌ Error inserting dress code:", err)
-		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to insert dress code"})
-	}
 
 	if count == 0 {
 		log.Println("⚠️ No dress code was inserted")

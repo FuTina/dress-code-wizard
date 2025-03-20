@@ -43,20 +43,33 @@
       </div>
       <label class="input-label">👗 Choose or Enter Dress Code</label>
       <div class="relative">
-        <input v-model="event.dress_code" class="input-field" placeholder="Choose or type a dress code..."
-          @focus="showDropdown = true" @blur="hideDropdown" />
+        <input
+          v-model="event.dress_code"
+          class="input-field"
+          placeholder="Choose or type a dress code..."
+          @focus="showDropdown = true"
+          @blur="hideDropdown"
+        />
         <ul v-if="showDropdown" class="dropdown-list">
-          <li v-for="dressCode in filteredDressCodes" :key="dressCode.name" @mousedown="selectDressCode(dressCode.name)"
-            class="dropdown-item">
+          <li
+            v-for="dressCode in filteredDressCodes"
+            :key="dressCode.name"
+            @mousedown="selectDressCode(dressCode.name)"
+            class="dropdown-item"
+          >
             {{ dressCode.name }}
           </li>
         </ul>
-
       </div>
 
       <button @click="generateDressCode" class="btn-ai">🪄 AI Suggestion</button>
 
-      <button v-if="USE_AI" @click="generateEventImage" class="btn-ai relative" :disabled="isGenerating">
+      <button
+        v-if="USE_AI"
+        @click="generateEventImage"
+        class="btn-ai relative"
+        :disabled="isGenerating"
+      >
         🎨 Generate AI Image
         <span v-if="isGenerating" class="loader absolute right-4 top-2"></span>
       </button>
@@ -70,12 +83,24 @@
       <!-- Vorschau-Bereich mit "Preview:" -->
       <div v-if="previewImage" class="mt-4">
         <p class="preview-label">🔍 Preview:</p>
-        <img :src="previewImage" alt="Event Image" class="w-full h-52 object-cover rounded-xl shadow-lg" />
+        <img
+          :src="previewImage"
+          alt="Event Image"
+          class="w-full h-52 object-cover rounded-xl shadow-lg"
+        />
 
-        <textarea v-model="event.outfit_suggestion" class="input-field resize-none mt-3" rows="3"
-          placeholder="📝 Describe the outfit..."></textarea>
+        <textarea
+          v-model="event.outfit_suggestion"
+          class="input-field resize-none mt-3"
+          rows="3"
+          placeholder="📝 Describe the outfit..."
+        ></textarea>
 
-        <button v-if="isSupabaseImage(previewImage)" @click="openImageInNewTab(previewImage)" class="btn-download">
+        <button
+          v-if="isSupabaseImage(previewImage)"
+          @click="openImageInNewTab(previewImage)"
+          class="btn-download"
+        >
           ⬇️ View & Download Image
         </button>
       </div>
@@ -285,7 +310,7 @@ export default {
   computed: {
     filteredDressCodes() {
       return this.availableDressCodes.filter(
-        (dressCode) => dressCode.event_type?.toLowerCase() === this.event.event_type.toLowerCase()
+        (dressCode) => dressCode.event_type?.toLowerCase() === this.event.event_type.toLowerCase(),
       )
     },
   },

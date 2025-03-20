@@ -41,11 +41,20 @@
       </div>
 
       <div class="relative">
-        <input v-model="event.dress_code" class="input-field" placeholder="Choose or type a dress code..."
-          @focus="showDropdown = true" @blur="hideDropdown" />
+        <input
+          v-model="event.dress_code"
+          class="input-field"
+          placeholder="Choose or type a dress code..."
+          @focus="showDropdown = true"
+          @blur="hideDropdown"
+        />
         <ul v-if="showDropdown" class="dropdown-list">
-          <li v-for="dressCode in filteredDressCodes" :key="dressCode.name" @mousedown="selectDressCode(dressCode.name)"
-            class="dropdown-item">
+          <li
+            v-for="dressCode in filteredDressCodes"
+            :key="dressCode.name"
+            @mousedown="selectDressCode(dressCode.name)"
+            class="dropdown-item"
+          >
             {{ dressCode.name }}
           </li>
         </ul>
@@ -53,7 +62,12 @@
 
       <button @click="generateDressCode" class="btn-ai">🪄 AI Suggestion</button>
 
-      <button v-if="USE_AI" @click="generateEventImage" class="btn-ai relative" :disabled="isGenerating">
+      <button
+        v-if="USE_AI"
+        @click="generateEventImage"
+        class="btn-ai relative"
+        :disabled="isGenerating"
+      >
         🎨 Generate AI Image
         <span v-if="isGenerating" class="loader absolute right-4 top-2"></span>
       </button>
@@ -65,20 +79,36 @@
       <input type="file" ref="fileInput" @change="handleFileUpload" hidden />
 
       <div v-if="previewImage || event.image_url" class="mt-4 text-center">
-        <img :src="previewImage || event.image_url" alt="Event Image"
-          class="w-full h-52 object-cover rounded-xl shadow-lg" />
+        <img
+          :src="previewImage || event.image_url"
+          alt="Event Image"
+          class="w-full h-52 object-cover rounded-xl shadow-lg"
+        />
 
         <div class="flex justify-center gap-2 mt-2">
-          <a v-if="event.image_url" :href="event.image_url" target="_blank" class="action-button download-button">
+          <a
+            v-if="event.image_url"
+            :href="event.image_url"
+            target="_blank"
+            class="action-button download-button"
+          >
             ⬇️ Download Image
           </a>
-          <button v-if="event.image_url" @click="deleteCurrentImage" class="action-button delete-button">
+          <button
+            v-if="event.image_url"
+            @click="deleteCurrentImage"
+            class="action-button delete-button"
+          >
             ❌ Delete Image
           </button>
         </div>
 
-        <textarea v-model="event.outfit_suggestion" class="input-field resize-none mt-3" rows="3"
-          placeholder="📝 Describe the outfit..."></textarea>
+        <textarea
+          v-model="event.outfit_suggestion"
+          class="input-field resize-none mt-3"
+          rows="3"
+          placeholder="📝 Describe the outfit..."
+        ></textarea>
       </div>
 
       <button @click="updateEvent" class="btn-save">✅ Save Changes</button>
@@ -123,6 +153,7 @@ export default {
       previewImage: null,
       outfit_suggestion: '',
       errorMessage: '',
+      showDropdown: false, // dresscodes dropdown
       isGenerating: false,
       USE_AI,
     }
@@ -130,7 +161,7 @@ export default {
   computed: {
     filteredDressCodes() {
       return this.availableDressCodes.filter(
-        (dressCode) => dressCode.event_type?.toLowerCase() === this.event.event_type.toLowerCase()
+        (dressCode) => dressCode.event_type?.toLowerCase() === this.event.event_type.toLowerCase(),
       )
     },
   },
@@ -179,6 +210,8 @@ export default {
       endTime: data.endTime ? data.endTime.slice(0, 8) : '',
     }
 
+    await this.fetchFilteredDressCodes()
+
     console.log('✅ Loaded event data:', this.event)
   },
 
@@ -220,27 +253,32 @@ export default {
       this.isGenerating = true
 
       try {
-        const { imageUrl } = await generateEventImage(this.event.dress_code, (loading) => {
-          this.isGenerating = loading
-        })
+        const { imageUrl } = await generateEventImage(this.event.dress_code, this.event.event_type)
 
-        // Fetch the AI-generated image as a blob
-        const imageBlob = await fetch(imageUrl).then((res) => res.blob())
+        if (!imageUrl) {
+          throw new Error('AI image generation failed')
+        }
 
-        // Upload the image and get the new URL
+        const response = await fetch(imageUrl)
+        if (!response.ok) {
+          throw new Error('Failed to fetch AI-generated image')
+        }
+        const imageBlob = await response.blob()
+
         const { url: uploadedImageUrl } = await uploadImage(imageBlob, 'event-images')
 
-        // ✅ Assign the new image URL to event.image_url to reflect the change
+        if (!uploadedImageUrl) {
+          throw new Error('Image upload to storage failed')
+        }
+
         this.event.image_url = uploadedImageUrl
         this.previewImage = uploadedImageUrl
 
-        // Generate a new outfit Suggestion
         this.event.outfit_suggestion = await generateOutfitSuggestion(this.event.dress_code)
 
-        // Clear the old image reference
         this.imageFile = null
       } catch (error) {
-        console.error('❌ AI Image Generation Error:', error)
+        console.error('❌ AI Image Generation Error:', error.message || error)
         this.setFallbackImageAndOutfitSuggestion()
       } finally {
         this.isGenerating = false

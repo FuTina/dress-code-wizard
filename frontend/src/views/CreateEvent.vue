@@ -7,7 +7,7 @@
 
       <!-- Event Type Dropdown -->
       <label class="input-label">📌 Event Type</label>
-      <select v-model="event.event_type" @change="updateDescription" class="input-field">
+      <select v-model="event.event_type" @change="updateDescription" class="input-dropdown">
         <option value="party">🎉 Party</option>
         <option value="business">💼 Business Meeting</option>
         <option value="date">💖 Date</option>
@@ -176,6 +176,43 @@
   color: #6b46c1;
   text-align: center;
   margin-bottom: 8px;
+}
+
+.input-dropdown {
+  padding: 12px;
+  border: 2px solid #ddd;
+  border-radius: 12px;
+  outline: none;
+  transition:
+    border 0.2s,
+    box-shadow 0.2s;
+  width: 100%;
+  max-width: 100%;
+  appearance: none;
+  background-color: white;
+  font-size: 16px;
+}
+
+.input-dropdown:focus {
+  border-color: #9f7aea;
+  box-shadow: 0 0 10px rgba(159, 122, 234, 0.4);
+}
+
+@media (max-width: 1024px) {
+
+  .input-dropdown {
+    width: 100%;
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 640px) {
+
+  /* Smartphones */
+  .input-dropdown {
+    font-size: 14px;
+    padding: 10px;
+  }
 }
 </style>
 

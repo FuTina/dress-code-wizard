@@ -4,7 +4,17 @@
 
     <div class="space-y-6">
       <input v-model="event.name" class="input-field" placeholder="✨ Event Name" />
-      <!-- <input v-model="event.name" :class="{'error': errorMessage && !event.name}" class="input-field" placeholder="✨ Event Name" /> -->
+
+      <!-- Event Type Dropdown -->
+      <label class="input-label">📌 Event Type</label>
+      <select v-model="event.event_type" @change="updateDescription" class="input-field">
+        <option value="party">🎉 Party</option>
+        <option value="business">💼 Business Meeting</option>
+        <option value="date">💖 Date</option>
+      </select>
+
+      <!-- Display dynamic event description below the selection -->
+      <p class="text-sm text-gray-600 italic mt-2">{{ event.description }}</p>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
@@ -38,12 +48,7 @@
         <button @click="generateDressCode" class="btn-ai">🪄 AI Suggestion</button>
       </div>
 
-      <button
-        v-if="USE_AI"
-        @click="generateEventImage"
-        class="btn-ai relative"
-        :disabled="isGenerating"
-      >
+      <button v-if="USE_AI" @click="generateEventImage" class="btn-ai relative" :disabled="isGenerating">
         🎨 Generate AI Image
         <span v-if="isGenerating" class="loader absolute right-4 top-2"></span>
       </button>
@@ -57,24 +62,13 @@
       <!-- Vorschau-Bereich mit "Preview:" -->
       <div v-if="previewImage" class="mt-4">
         <p class="preview-label">🔍 Preview:</p>
-        <img
-          :src="previewImage"
-          alt="Event Image"
-          class="w-full h-52 object-cover rounded-xl shadow-lg"
-        />
+        <img :src="previewImage" alt="Event Image" class="w-full h-52 object-cover rounded-xl shadow-lg" />
 
-        <textarea
-          v-model="outfitDescription"
-          class="input-field resize-none mt-3"
-          rows="3"
-          placeholder="📝 Describe the outfit..."
-        ></textarea>
+        <textarea v-model="event.outfit_suggestion" class="input-field resize-none mt-3" rows="3"
+          placeholder="📝 Describe the outfit..."></textarea>
 
-        <button
-          v-if="isSupabaseImage(previewImage)"
-          @click="openImageInNewTab(previewImage)"
-          class="btn-download"
-        >
+
+        <button v-if="isSupabaseImage(previewImage)" @click="openImageInNewTab(previewImage)" class="btn-download">
           ⬇️ View & Download Image
         </button>
       </div>
@@ -190,9 +184,9 @@ import { createEvent } from '@/api/eventService'
 import {
   getDressCodeSuggestion,
   generateEventImage,
-  generateOutfitDescription,
+  generateOutfitSuggestion,
   getFallbackImage,
-  getFallbackDescription,
+  getFallbackOutfitSuggestion,
   USE_AI,
 } from '@/api/aiService'
 import { uploadImage } from '@/api/storageService'
@@ -202,6 +196,8 @@ export default {
     return {
       event: {
         name: '',
+        event_type: 'party', // Default selection
+        description: 'A fun party with music and dance!', // Default description
         startdate: this.getTodayDate(),
         enddate: this.getTodayDate(),
         startTime: this.getNextFullHour(),
@@ -212,7 +208,7 @@ export default {
       previewImage: getFallbackImage('default'),
       isGenerating: false,
       USE_AI,
-      outfitDescription: getFallbackDescription('default'),
+      outfit_suggestion: getFallbackOutfitSuggestion('default'),
       errorMessage: '',
     }
   },
@@ -247,10 +243,17 @@ export default {
       return date.toTimeString().substring(0, 5)
     },
     async generateDressCode() {
-      this.event.dress_code = await getDressCodeSuggestion()
-      this.setFallbackImageAndDescription()
+      this.event.dress_code = await getDressCodeSuggestion(this.event.event_type)
+      this.setFallbackImageAndOutfitSuggestion()
     },
-
+    updateDescription() {
+      const descriptions = {
+        party: 'A fun party with music and dance!',
+        business: 'A formal business meeting with professional attire.',
+        date: 'A romantic date with stylish and elegant outfits.',
+      }
+      this.event.description = descriptions[this.event.event_type] || 'General event'
+    },
     validateDates() {
       const start = new Date(`${this.event.startdate}T${this.event.startTime}`)
       const end = new Date(`${this.event.enddate}T${this.event.endTime}`)
@@ -287,16 +290,37 @@ export default {
         imageUrl = url
       }
 
+
+      console.log('event type before validation:', this.event.event_type);
+
+      if (!this.event.event_type || typeof this.event.event_type !== 'string') {
+        alert('❌ Event type is missing or invalid!');
+        return;
+      }
+
+      const allowedEventTypes = ['party', 'business', 'date'];
+      this.event.event_type = this.event.event_type.trim().toLowerCase(); // Bereinigen
+
+      if (!allowedEventTypes.includes(this.event.event_type)) {
+        alert('❌ Invalid event type! Please select a valid type.');
+        return;
+      }
+
+      console.log('event type after validation:', this.event.event_type);
+
       await createEvent({
         name: this.event.name,
+        event_type: this.event.event_type,
         startdate: this.event.startdate,
         enddate: this.event.enddate,
         startTime: `${this.event.startTime}:00`,
         endTime: `${this.event.endTime}:00`,
         dress_code: this.event.dress_code,
         image_url: imageUrl,
-        description: this.outfitDescription.trim(),
+        description: this.event.description?.trim() || '',
+        outfit_suggestion: this.event.outfit_suggestion?.trim() || '',
       })
+
 
       alert('✅ Event saved!')
       this.$router.push('/dashboard')
@@ -322,28 +346,28 @@ export default {
           })
 
           this.previewImage = imageUrl || getFallbackImage(this.event.dress_code)
-          this.outfitDescription = await generateOutfitDescription(this.event.dress_code)
+          this.event.outfit_suggestion = await generateOutfitSuggestion(this.event.dress_code)
         } else {
-          this.setFallbackImageAndDescription()
+          this.setFallbackImageAndOutfitSuggestion()
         }
       } catch (error) {
         console.error('❌ AI Image Generation Error:', error)
-        this.setFallbackImageAndDescription()
+        this.setFallbackImageAndOutfitSuggestion()
       } finally {
         this.isGenerating = false
       }
     },
-    setFallbackImageAndDescription() {
+    setFallbackImageAndOutfitSuggestion() {
       this.previewImage =
         getFallbackImage(this.event.dress_code?.trim().toLowerCase()) || getFallbackImage('default')
-      this.outfitDescription =
-        getFallbackDescription(this.event.dress_code?.trim().toLowerCase()) ||
-        getFallbackDescription('default')
+      this.event.outfit_suggestion =
+        getFallbackOutfitSuggestion(this.event.dress_code?.trim().toLowerCase()) ||
+        getFallbackOutfitSuggestion('default')
 
       console.warn(
-        '⚠️ AI failed - fallback image & description set:',
+        '⚠️ AI failed - fallback image & suggestion set:',
         this.previewImage,
-        this.outfitDescription,
+        this.event.outfit_suggestion
       )
     },
     triggerFileInput() {
@@ -354,9 +378,14 @@ export default {
       this.previewImage =
         URL.createObjectURL(this.imageFile) || getFallbackImage(this.event.dress_code)
     },
-    async generateOutfitDescription() {
-      if (!this.event.dress_code) return
-      this.outfitDescription = await generateOutfitDescription(this.event.dress_code)
+    async generateOutfitSuggestion() {
+      if (!this.event.dress_code) {
+        this.event.outfit_suggestion = 'No outfit suggestion available.'
+        return
+      }
+      this.event.outfit_suggestion = this.event.dress_code
+        ? await generateOutfitSuggestion(this.event.dress_code)
+        : 'No outfit suggestion available.'
     },
   },
 }

@@ -1,6 +1,6 @@
 import { supabase } from '@/lib/supabase'
 import { DateTime } from 'luxon'
-import { getFallbackImage, getFallbackDescription } from '@/api/aiService'
+import { getFallbackImage, getFallbackOutfitSuggestion } from '@/api/aiService'
 
 // Get current user
 const getCurrentUser = async () => {
@@ -27,10 +27,10 @@ export const createEvent = async (eventData, imageFile) => {
 
   console.log('Final image URL:', imageUrl)
 
-  const eventDescription =
-    eventData.description?.trim() || getFallbackDescription(eventData.dress_code)
+  const eventoutfit_suggestion =
+    eventData.outfit_suggestion?.trim() || getFallbackOutfitSuggestion(eventData.dress_code)
 
-  console.log('Event description:', eventDescription)
+  console.log('Event outfit_suggestion:', eventoutfit_suggestion)
   console.log('🖼️ Final event image:', imageUrl)
 
   const { data, error } = await supabase
@@ -40,7 +40,8 @@ export const createEvent = async (eventData, imageFile) => {
         ...eventData,
         user_id: user.id,
         image_url: imageUrl,
-        description: eventDescription,
+        description: eventData.description?.trim() || '',
+        outfit_suggestion: eventoutfit_suggestion,
       },
     ])
     .select()
@@ -60,7 +61,9 @@ export const getEvents = async () => {
 
   const { data, error } = await supabase
     .from('events')
-    .select('id, name, startdate, enddate, startTime, endTime, dress_code, description, image_url')
+    .select(
+      'id, name, event_type, startdate, enddate, startTime, endTime, dress_code, description, outfit_suggestion, image_url',
+    )
     .gte('startdate', now)
     .order('startdate', { ascending: true })
     .order('startTime', { ascending: true })
@@ -96,7 +99,11 @@ export const updateEvent = async (eventId, updatedData, newImageFile) => {
 
   const { data, error } = await supabase
     .from('events')
-    .update({ ...updatedData, image_url: imageUrl })
+    .update({
+      ...updatedData,
+      event_type: updatedData.event_type,
+      image_url: imageUrl,
+    })
     .eq('id', eventId)
     .select()
 

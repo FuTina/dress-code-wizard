@@ -6,9 +6,15 @@
     <Navbar class="fixed top-0 left-0 w-full z-50" />
 
     <div class="absolute inset-0 pointer-events-none overflow-hidden">
-      <div class="absolute top-10 left-10 w-16 h-16 bg-purple-400 opacity-50 rounded-full animate-float"></div>
-      <div class="absolute top-1/2 left-1/4 w-12 h-12 bg-yellow-400 opacity-50 rounded-full animate-float-slow"></div>
-      <div class="absolute bottom-10 right-10 w-20 h-20 bg-blue-400 opacity-50 rounded-full animate-float"></div>
+      <div
+        class="absolute top-10 left-10 w-16 h-16 bg-purple-400 opacity-50 rounded-full animate-float"
+      ></div>
+      <div
+        class="absolute top-1/2 left-1/4 w-12 h-12 bg-yellow-400 opacity-50 rounded-full animate-float-slow"
+      ></div>
+      <div
+        class="absolute bottom-10 right-10 w-20 h-20 bg-blue-400 opacity-50 rounded-full animate-float"
+      ></div>
     </div>
 
     <div
@@ -38,7 +44,8 @@ body {
 }
 
 @keyframes float {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0px);
   }
   50% {
@@ -50,7 +57,8 @@ body {
 }
 
 @keyframes float-slow {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0px);
   }
   50% {

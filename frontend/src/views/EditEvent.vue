@@ -5,6 +5,16 @@
     <div class="space-y-6">
       <input v-model="event.name" class="input-field" placeholder="✨ Event Name" />
 
+      <label class="input-label">📌 Event Type</label>
+      <select v-model="event.event_type" @change="updateDescription" class="input-field">
+        <option value="party">🎉 Party</option>
+        <option value="business">💼 Business Meeting</option>
+        <option value="date">💖 Date</option>
+      </select>
+
+      <p class="text-sm text-gray-600 italic mt-2">{{ event.description }}</p>
+
+
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label class="input-label">📅 Start Date</label>
@@ -36,12 +46,7 @@
         <button @click="generateDressCode" class="btn-ai">🪄 AI Suggestion</button>
       </div>
 
-      <button
-        v-if="USE_AI"
-        @click="generateEventImage"
-        class="btn-ai relative"
-        :disabled="isGenerating"
-      >
+      <button v-if="USE_AI" @click="generateEventImage" class="btn-ai relative" :disabled="isGenerating">
         🎨 Generate AI Image
         <span v-if="isGenerating" class="loader absolute right-4 top-2"></span>
       </button>
@@ -53,36 +58,21 @@
       <input type="file" ref="fileInput" @change="handleFileUpload" hidden />
 
       <div v-if="previewImage || event.image_url" class="mt-4 text-center">
-        <img
-          :src="previewImage || event.image_url"
-          alt="Event Image"
-          class="w-full h-52 object-cover rounded-xl shadow-lg"
-        />
+        <img :src="previewImage || event.image_url" alt="Event Image"
+          class="w-full h-52 object-cover rounded-xl shadow-lg" />
 
         <div class="flex justify-center gap-2 mt-2">
-          <a
-            v-if="event.image_url"
-            :href="event.image_url"
-            target="_blank"
-            class="action-button download-button"
-          >
+          <a v-if="event.image_url" :href="event.image_url" target="_blank" class="action-button download-button">
             ⬇️ Download Image
           </a>
-          <button
-            v-if="event.image_url"
-            @click="deleteCurrentImage"
-            class="action-button delete-button"
-          >
+          <button v-if="event.image_url" @click="deleteCurrentImage" class="action-button delete-button">
             ❌ Delete Image
           </button>
         </div>
 
-        <textarea
-          v-model="event.description"
-          class="input-field resize-none mt-3"
-          rows="3"
-          placeholder="📝 Describe the outfit..."
-        ></textarea>
+        <textarea v-model="event.outfit_suggestion" class="input-field resize-none mt-3" rows="3"
+          placeholder="📝 Describe the outfit..."></textarea>
+
       </div>
 
       <button @click="updateEvent" class="btn-save">✅ Save Changes</button>
@@ -100,9 +90,9 @@ import { uploadImage, deleteImage } from '@/api/storageService'
 import {
   getDressCodeSuggestion,
   generateEventImage,
-  generateOutfitDescription,
+  generateOutfitSuggestion,
   getFallbackImage,
-  getFallbackDescription,
+  getFallbackOutfitSuggestion,
   USE_AI,
 } from '@/api/aiService'
 
@@ -122,7 +112,7 @@ export default {
       },
       imageFile: null,
       previewImage: null,
-      outfitDescription: '',
+      outfit_suggestion: '',
       errorMessage: '',
       isGenerating: false,
       USE_AI,
@@ -169,6 +159,14 @@ export default {
   },
 
   methods: {
+    updateDescription() {
+      const descriptions = {
+        party: "A fun party with music and dance!",
+        business: "A formal business meeting with professional attire.",
+        date: "A romantic date with stylish and elegant outfits."
+      };
+      this.event.description = descriptions[this.event.event_type] || "General event";
+    },
     async generateDressCode() {
       this.event.dress_code = await getDressCodeSuggestion()
     },
@@ -195,25 +193,25 @@ export default {
         this.event.image_url = uploadedImageUrl
         this.previewImage = uploadedImageUrl
 
-        // Generate a new outfit description
-        this.event.description = await generateOutfitDescription(this.event.dress_code)
+        // Generate a new outfit Suggestion
+        this.event.outfit_suggestion = await generateOutfitSuggestion(this.event.dress_code)
 
         // Clear the old image reference
         this.imageFile = null
       } catch (error) {
         console.error('❌ AI Image Generation Error:', error)
-        this.setFallbackImageAndDescription()
+        this.setFallbackImageAndOutfitSuggestion()
       } finally {
         this.isGenerating = false
       }
     },
 
-    setFallbackImageAndDescription() {
+    setFallbackImageAndOutfitSuggestion() {
       this.previewImage =
         getFallbackImage(this.event.dress_code?.trim().toLowerCase()) || getFallbackImage('default')
-      this.event.description =
-        getFallbackDescription(this.event.dress_code?.trim().toLowerCase()) ||
-        getFallbackDescription('default')
+      this.event.outfit_suggestion =
+        getFallbackOutfitSuggestion(this.event.dress_code?.trim().toLowerCase()) ||
+        getFallbackOutfitSuggestion('default')
     },
 
     triggerFileInput() {
@@ -267,11 +265,13 @@ export default {
 
       const updateData = {
         name: this.event.name,
+        event_type: this.event.event_type,
         startdate: this.event.startdate,
         enddate: this.event.enddate,
         startTime: formattedStartTime,
         endTime: formattedEndTime,
         dress_code: this.event.dress_code,
+        outfit_suggestion: this.event.outfit_suggestion,
         description: this.event.description,
         image_url: imageUrl,
       }

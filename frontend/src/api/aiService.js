@@ -31,7 +31,7 @@ const fallbackImages = {
   default: '/fallback/default0.jpg',
 }
 
-const fallbackDescriptions = {
+const fallbackOutfitSuggestions = {
   neverland:
     'Think Peter Pan vibes! Dress as a pirate, fairy, or even a lost boy. A mix of adventure and whimsy.',
   nineties:
@@ -46,21 +46,22 @@ const fallbackDescriptions = {
   default: 'Express yourself with a creative outfit matching the theme!',
 }
 
-export const getFallbackDescription = (dressCode) => {
-  if (!dressCode) return fallbackDescriptions.default
+export const getFallbackOutfitSuggestion = (dressCode) => {
+  if (!dressCode) return fallbackOutfitSuggestions.default
   const normalizedDressCode = dressCode.toLowerCase().trim()
 
-  console.log('🔍 Checking Fallback Description for:', normalizedDressCode)
+  console.log('🔍 Checking Fallback outfit suggestion for:', normalizedDressCode)
 
   return (
-    Object.entries(fallbackDescriptions).find(([key]) => normalizedDressCode.includes(key))?.[1] ||
-    fallbackDescriptions.default
+    Object.entries(fallbackOutfitSuggestions).find(([key]) =>
+      normalizedDressCode.includes(key),
+    )?.[1] || fallbackOutfitSuggestions.default
   )
 }
 
-export const generateOutfitDescription = async (dressCode) => {
-  if (!dressCode) return getFallbackDescription('default')
-  if (!USE_AI) return getFallbackDescription(dressCode)
+export const generateOutfitSuggestion = async (dressCode) => {
+  if (!dressCode) return getFallbackOutfitSuggestion('default')
+  if (!USE_AI) return getFallbackOutfitSuggestion(dressCode)
 
   try {
     const response = await axios.post(
@@ -107,13 +108,13 @@ export const generateOutfitDescription = async (dressCode) => {
       },
     )
 
-    const outfitDescription = response.data?.choices?.[0]?.message?.content
+    const outfitSuggestion = response.data?.choices?.[0]?.message?.content
       ?.trim()
       .replace(/["']/g, '')
-    return outfitDescription && USE_AI ? outfitDescription : getFallbackDescription(dressCode)
+    return outfitSuggestion && USE_AI ? outfitSuggestion : getFallbackOutfitSuggestion(dressCode)
   } catch (error) {
-    console.error('❌ AI error fetching outfit description:', error)
-    return getFallbackDescription(dressCode)
+    console.error('❌ AI error fetching outfit Suggestion:', error)
+    return getFallbackOutfitSuggestion(dressCode)
   }
 }
 
@@ -131,7 +132,6 @@ export const getFallbackImage = (dressCode) => {
     fallbackImages.default
   )
 }
-
 
 export const getDressCodeSuggestion = async () => {
   console.log('VITE_USE_AI:', import.meta.env.VITE_USE_AI)
@@ -172,7 +172,6 @@ export const getDressCodeSuggestion = async () => {
     return getFallbackDressCode()
   }
 }
-
 
 export const generateEventImage = async (dressCode, setLoading) => {
   console.log('VITE_USE_AI:', import.meta.env.VITE_USE_AI)
